@@ -1,0 +1,31 @@
+{
+  "etfs": [
+    "SPY", "QQQ", "XLE", "SMH", "XLF", "XLP", "XLU", "GDX",
+    "XLI", "XME", "XHB", "OIH", "XBI", "JETS", "XLK", "XLV", "IWM"
+  ],
+  "stocks": [
+    "AAPL", "MSFT", "AMZN", "GOOGL", "META", "NVDA", "AMD", "AVGO",
+    "INTC", "MRVL", "QCOM", "TSM", "ARM", "SMCI", "MU",
+    "NFLX", "DIS", "WBD",
+    "JPM", "BAC", "GS", "MS", "WFC", "C", "V", "MA",
+    "PLTR", "COIN", "HOOD", "MARA", "MSTR", "IREN", "SOFI", "PYPL",
+    "XOM", "CVX", "OXY", "SLB", "HAL", "RIG", "DVN",
+    "AAL", "DAL", "UAL", "JETS",
+    "UBER", "RIVN", "F", "GE",
+    "LLY", "PFE", "UNH", "JNJ",
+    "WMT", "HD", "LOW", "TGT", "COST", "SBUX", "NKE",
+    "SHOP", "ABNB", "ZM", "SNOW", "DKNG", "PINS",
+    "ORCL", "CRM", "ADBE", "CSCO", "PANW", "CRWD",
+    "LMT", "NOC", "GD", "DFEN",
+    "BA", "NEE", "T", "U",
+    "GLD", "SLV",
+    "CCL", "ONDS"
+  ],
+  "tsx": [
+    "RY.TO", "TD.TO", "BNS.TO", "BMO.TO", "CM.TO",
+    "ENB.TO", "CNQ.TO", "SU.TO", "CVE.TO",
+    "SHOP.TO", "CNR.TO", "CP.TO", "ATD.TO",
+    "WPM.TO", "ABX.TO", "AEM.TO"
+  ],
+  "custom": []
+}
