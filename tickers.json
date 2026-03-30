@@ -122,5 +122,10 @@
     "ABX.TO",
     "AEM.TO"
   ],
-  "custom": []
+  "custom": [
+    "CAT"
+  ],
+  "sectors": {
+    "CAT": "Industrials"
+  }
 }
