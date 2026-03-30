@@ -134,7 +134,8 @@
     "LRCX",
     "AMAT",
     "ASML",
-    "STX"
+    "STX",
+    "SNDK"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -148,6 +149,7 @@
     "LRCX": "Technology",
     "AMAT": "Technology",
     "ASML": "Technology",
-    "STX": "Technology"
+    "STX": "Technology",
+    "SNDK": "Technology"
   }
 }
