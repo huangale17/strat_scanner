@@ -124,10 +124,12 @@
   ],
   "custom": [
     "CAT",
-    "DE"
+    "DE",
+    "SCHW"
   ],
   "sectors": {
     "CAT": "Industrials",
-    "DE": "Industrials"
+    "DE": "Industrials",
+    "SCHW": "Financials"
   }
 }
