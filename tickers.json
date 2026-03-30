@@ -135,7 +135,8 @@
     "AMAT",
     "ASML",
     "STX",
-    "SNDK"
+    "SNDK",
+    "SPOT"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -150,6 +151,7 @@
     "AMAT": "Technology",
     "ASML": "Technology",
     "STX": "Technology",
-    "SNDK": "Technology"
+    "SNDK": "Technology",
+    "SPOT": "Communication"
   }
 }
