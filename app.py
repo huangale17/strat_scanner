@@ -4,11 +4,13 @@ TheStrat Scanner — Streamlit web app.
 Run with:  streamlit run app.py
 """
 
+import base64
 import json
 import os
 from datetime import datetime
 
 import pandas as pd
+import requests
 import streamlit as st
 import streamlit.components.v1 as components
 
@@ -44,6 +46,108 @@ TICKERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tickers
 ALL_SIGNALS    = ["Shooter", "Hammer", "2U Red", "2D Green", "Inside Bar", "Double Inside (1-1)", "Outside Bar", "RevStrat 1-2U", "RevStrat 1-2D", "3-2U", "3-2D"]
 ALL_TIMEFRAMES = ["Daily", "Weekly", "Monthly", "Quarterly"]
 
+# ---------------------------------------------------------------------------
+# Sector map — used to add a Sector column to scan results
+# ---------------------------------------------------------------------------
+SECTOR_MAP: dict[str, str] = {
+    # --- Broad Market ETFs ---
+    "SPY": "Broad Market", "QQQ": "Broad Market", "IWM": "Broad Market",
+
+    # --- Sector ETFs ---
+    "XLK": "Technology",   "SMH": "Semiconductors",
+    "XLF": "Financials",   "XLE": "Energy",
+    "XLV": "Healthcare",   "XBI": "Biotech",
+    "XLI": "Industrials",  "XLP": "Consumer Staples",
+    "XLU": "Utilities",    "XHB": "Homebuilders",
+    "XME": "Metals & Mining", "OIH": "Oil Services",
+    "GDX": "Gold Miners",  "JETS": "Airlines",
+
+    # --- Mega-cap Tech ---
+    "AAPL": "Technology",  "MSFT": "Technology",
+    "AMZN": "Technology",  "GOOGL": "Technology",
+    "META": "Technology",
+
+    # --- Semiconductors ---
+    "NVDA": "Semiconductors", "AMD": "Semiconductors",
+    "AVGO": "Semiconductors", "INTC": "Semiconductors",
+    "MRVL": "Semiconductors", "QCOM": "Semiconductors",
+    "TSM":  "Semiconductors", "ARM":  "Semiconductors",
+    "SMCI": "Semiconductors", "MU":   "Semiconductors",
+
+    # --- Communication / Streaming ---
+    "NFLX": "Communication", "DIS": "Communication",
+    "WBD":  "Communication", "PINS": "Communication",
+    "T":    "Communication",
+
+    # --- Financials ---
+    "JPM": "Financials", "BAC": "Financials", "GS":   "Financials",
+    "MS":  "Financials", "WFC": "Financials", "C":    "Financials",
+    "V":   "Financials", "MA":  "Financials", "SOFI": "Financials",
+    "PYPL": "Financials", "HOOD": "Financials",
+
+    # --- Crypto ---
+    "COIN": "Crypto", "MARA": "Crypto", "MSTR": "Crypto", "IREN": "Crypto",
+
+    # --- Energy ---
+    "XOM": "Energy", "CVX": "Energy", "OXY": "Energy",
+    "SLB": "Energy", "HAL": "Energy", "RIG": "Energy", "DVN": "Energy",
+
+    # --- Airlines ---
+    "AAL": "Airlines", "DAL": "Airlines", "UAL": "Airlines",
+
+    # --- EV / Auto ---
+    "RIVN": "EV / Auto", "F": "EV / Auto", "UBER": "Transportation",
+
+    # --- Industrials ---
+    "GE": "Industrials", "BA": "Industrials",
+
+    # --- Defense ---
+    "LMT": "Defense", "NOC": "Defense", "GD": "Defense", "DFEN": "Defense",
+
+    # --- Healthcare ---
+    "LLY": "Healthcare", "PFE": "Healthcare",
+    "UNH": "Healthcare", "JNJ": "Healthcare", "ONDS": "Healthcare",
+
+    # --- Consumer Staples ---
+    "WMT": "Consumer Staples", "COST": "Consumer Staples",
+
+    # --- Consumer Discretionary ---
+    "HD":   "Consumer Discretionary", "LOW":  "Consumer Discretionary",
+    "TGT":  "Consumer Discretionary", "SBUX": "Consumer Discretionary",
+    "NKE":  "Consumer Discretionary", "ABNB": "Consumer Discretionary",
+    "DKNG": "Consumer Discretionary", "CCL":  "Consumer Discretionary",
+
+    # --- Software / Cloud ---
+    "PLTR": "Software",  "SHOP": "Software",  "CRM":  "Software",
+    "ADBE": "Software",  "ORCL": "Software",  "SNOW": "Software",
+    "ZM":   "Software",  "U":    "Software",
+
+    # --- Cybersecurity ---
+    "PANW": "Cybersecurity", "CRWD": "Cybersecurity", "CSCO": "Cybersecurity",
+
+    # --- Utilities ---
+    "NEE": "Utilities",
+
+    # --- Commodities ---
+    "GLD": "Commodities", "SLV": "Commodities",
+
+    # --- TSX: Financials ---
+    "RY.TO": "Financials", "TD.TO": "Financials", "BNS.TO": "Financials",
+    "BMO.TO": "Financials", "CM.TO": "Financials",
+
+    # --- TSX: Energy ---
+    "ENB.TO": "Energy", "CNQ.TO": "Energy", "SU.TO": "Energy", "CVE.TO": "Energy",
+
+    # --- TSX: Industrials ---
+    "CNR.TO": "Industrials", "CP.TO": "Industrials",
+
+    # --- TSX: Technology ---
+    "SHOP.TO": "Technology", "ATD.TO": "Consumer Discretionary",
+
+    # --- TSX: Materials / Gold ---
+    "WPM.TO": "Gold & Silver", "ABX.TO": "Gold & Silver", "AEM.TO": "Gold & Silver",
+}
+
 
 def to_tradingview_format(ticker: str) -> str:
     """Convert yfinance ticker format to TradingView format for watchlist pasting."""
@@ -54,14 +158,50 @@ def to_tradingview_format(ticker: str) -> str:
     return ticker
 
 
+def _use_github() -> bool:
+    """True when running on Streamlit Cloud with GitHub secrets configured."""
+    return "github" in st.secrets
+
+
+def _gh_headers() -> dict:
+    return {
+        "Authorization": f"token {st.secrets['github']['token']}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+
+
+def _gh_url() -> str:
+    owner = st.secrets["github"]["owner"]
+    repo  = st.secrets["github"]["repo"]
+    return f"https://api.github.com/repos/{owner}/{repo}/contents/tickers.json"
+
+
 def load_tickers() -> dict:
+    if _use_github():
+        resp = requests.get(_gh_url(), headers=_gh_headers())
+        resp.raise_for_status()
+        return json.loads(base64.b64decode(resp.json()["content"]).decode())
     with open(TICKERS_FILE, "r") as f:
         return json.load(f)
 
 
-def save_tickers(data: dict) -> None:
-    with open(TICKERS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+def save_tickers(data: dict, message: str = "Update tickers") -> None:
+    if _use_github():
+        # Need the current file's SHA to update it
+        resp = requests.get(_gh_url(), headers=_gh_headers())
+        resp.raise_for_status()
+        sha = resp.json()["sha"]
+        payload = {
+            "message": message,
+            "content": base64.b64encode(
+                json.dumps(data, indent=2).encode()
+            ).decode(),
+            "sha": sha,
+        }
+        requests.put(_gh_url(), headers=_gh_headers(), json=payload).raise_for_status()
+    else:
+        with open(TICKERS_FILE, "w") as f:
+            json.dump(data, f, indent=2)
 
 
 def flat_list(data: dict) -> list[str]:
@@ -105,6 +245,15 @@ with st.sidebar:
         "Direction:",
         ["All", "Bullish", "Bearish", "Neutral", "FTFC Bullish", "FTFC Bearish"],
         horizontal=True,
+    )
+
+    all_sectors = sorted(set(SECTOR_MAP.values()))
+    sector_filter = st.multiselect(
+        "Sectors:",
+        all_sectors,
+        default=all_sectors,
+        label_visibility="collapsed",
+        placeholder="Filter by sector…",
     )
 
     st.divider()
@@ -279,6 +428,14 @@ if not results:
     st.info("No signals found. Try adding more timeframes or adjusting filters.")
     st.stop()
 
+# Apply sector filter
+if sector_filter:
+    results = [r for r in results if SECTOR_MAP.get(r["Ticker"], "Other") in sector_filter]
+
+if not results:
+    st.info("No signals found for the selected sectors.")
+    st.stop()
+
 # -- Summary metrics --
 bullish      = sum(1 for r in results if r["Direction"] == "Bullish")
 bearish      = sum(1 for r in results if r["Direction"] == "Bearish")
@@ -297,14 +454,22 @@ c6.metric("🔴 FTFC Bear",   ftfc_bear)
 # -- Build + sort DataFrame --
 df_res = pd.DataFrame(results)
 
+# Add Sector column
+df_res["Sector"] = df_res["Ticker"].map(lambda t: SECTOR_MAP.get(t, "Other"))
+
 tf_order = {"Quarterly": 0, "Monthly": 1, "Weekly": 2, "2-Day": 3, "Daily": 4}
 df_res["_tf_sort"] = df_res["Timeframe"].map(tf_order)
 df_res = (
     df_res
-    .sort_values(["_tf_sort", "Ticker"])
+    .sort_values(["_tf_sort", "Sector", "Ticker"])
     .drop(columns=["_tf_sort"])
     .reset_index(drop=True)
 )
+
+# Reorder columns so Sector appears early
+col_order = ["Ticker", "Sector", "Timeframe", "Signal", "Direction", "FTFC",
+             "Bar Type", "Date", "Open", "High", "Low", "Close", "Prev High", "Prev Low"]
+df_res = df_res[[c for c in col_order if c in df_res.columns]]
 
 # -- Styling --
 def _style_direction(val: str) -> str:
