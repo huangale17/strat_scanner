@@ -130,7 +130,8 @@
     "NBIS",
     "CRWV",
     "APP",
-    "INTU"
+    "INTU",
+    "LRCX"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -140,6 +141,7 @@
     "NBIS": "Communication",
     "CRWV": "Technology",
     "APP": "Communication",
-    "INTU": "Technology"
+    "INTU": "Technology",
+    "LRCX": "Technology"
   }
 }
