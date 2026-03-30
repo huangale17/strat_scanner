@@ -131,7 +131,8 @@
     "CRWV",
     "APP",
     "INTU",
-    "LRCX"
+    "LRCX",
+    "AMAT"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -142,6 +143,7 @@
     "CRWV": "Technology",
     "APP": "Communication",
     "INTU": "Technology",
-    "LRCX": "Technology"
+    "LRCX": "Technology",
+    "AMAT": "Technology"
   }
 }
