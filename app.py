@@ -278,6 +278,13 @@ with st.sidebar:
         horizontal=True,
     )
 
+    st.divider()
+
+    # -- Ticker management --
+    st.subheader("Tickers")
+    tickers_data = load_tickers()
+    all_t = flat_list(tickers_data)
+
     _eff_map    = get_effective_sector_map(tickers_data)
     all_sectors = sorted(set(_eff_map.values())) + ["Other"]
     sector_filter = st.multiselect(
@@ -287,13 +294,6 @@ with st.sidebar:
         label_visibility="collapsed",
         placeholder="Filter by sector…",
     )
-
-    st.divider()
-
-    # -- Ticker management --
-    st.subheader("Tickers")
-    tickers_data = load_tickers()
-    all_t = flat_list(tickers_data)
 
     with st.expander(f"Ticker list ({len(all_t)} total)"):
         st.caption("**ETFs:** " + ", ".join(tickers_data.get("etfs", [])))
