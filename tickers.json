@@ -126,12 +126,14 @@
     "CAT",
     "DE",
     "SCHW",
-    "DDOG"
+    "DDOG",
+    "NBIS"
   ],
   "sectors": {
     "CAT": "Industrials",
     "DE": "Industrials",
     "SCHW": "Financials",
-    "DDOG": "Technology"
+    "DDOG": "Technology",
+    "NBIS": "Communication"
   }
 }
