@@ -9,7 +9,8 @@ all signals are based on fully closed bars.
 
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -113,7 +114,12 @@ def _drop_incomplete_bar(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
 
     if timeframe == "Daily":
         if last_date >= today:
-            df = df.iloc[:-1]
+            # Only drop if the US market is still open (before 4:00 PM ET).
+            # After close the bar is complete and should be kept.
+            now_et = datetime.now(ZoneInfo("America/New_York"))
+            market_open = now_et.hour < 16  # True = before 4 PM ET
+            if market_open:
+                df = df.iloc[:-1]
 
     elif timeframe == "Weekly":
         # Only drop if today is a weekday — on weekends the prior week is fully closed.
