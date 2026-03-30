@@ -132,7 +132,8 @@
     "APP",
     "INTU",
     "LRCX",
-    "AMAT"
+    "AMAT",
+    "ASML"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -144,6 +145,7 @@
     "APP": "Communication",
     "INTU": "Technology",
     "LRCX": "Technology",
-    "AMAT": "Technology"
+    "AMAT": "Technology",
+    "ASML": "Technology"
   }
 }
