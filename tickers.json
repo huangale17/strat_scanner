@@ -136,7 +136,8 @@
     "ASML",
     "STX",
     "SNDK",
-    "SPOT"
+    "SPOT",
+    "RDDT"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -152,6 +153,7 @@
     "ASML": "Technology",
     "STX": "Technology",
     "SNDK": "Technology",
-    "SPOT": "Communication"
+    "SPOT": "Communication",
+    "RDDT": "Communication"
   }
 }
