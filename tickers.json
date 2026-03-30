@@ -125,11 +125,13 @@
   "custom": [
     "CAT",
     "DE",
-    "SCHW"
+    "SCHW",
+    "DDOG"
   ],
   "sectors": {
     "CAT": "Industrials",
     "DE": "Industrials",
-    "SCHW": "Financials"
+    "SCHW": "Financials",
+    "DDOG": "Technology"
   }
 }
