@@ -138,7 +138,8 @@
     "SNDK",
     "SPOT",
     "RDDT",
-    "HIMS"
+    "HIMS",
+    "DASH"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -156,6 +157,7 @@
     "SNDK": "Technology",
     "SPOT": "Communication",
     "RDDT": "Communication",
-    "HIMS": "Healthcare"
+    "HIMS": "Healthcare",
+    "DASH": "Consumer Discretionary"
   }
 }
