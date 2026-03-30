@@ -100,45 +100,101 @@ def _resample_quarterly(df: pd.DataFrame) -> pd.DataFrame:
     return df  # fallback: return monthly if resample fails
 
 
+def _last_bday_of_month(year: int, month: int) -> date:
+    """Return the last Mon–Fri calendar day of the given month."""
+    if month == 12:
+        last_day = date(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        last_day = date(year, month + 1, 1) - timedelta(days=1)
+    bday = np.busday_offset(last_day.strftime("%Y-%m-%d"), 0, roll="preceding")
+    return pd.Timestamp(bday).date()
+
+
 def _drop_incomplete_bar(df: pd.DataFrame, timeframe: str) -> pd.DataFrame:
     """
-    Remove the last bar when it represents the still-open current period,
+    Remove the last bar when it represents a still-open current period,
     ensuring signals are only fired on fully closed bars.
+
+    Every bar closes at 4 PM ET on the last trading day of its period.
+    We keep the bar once that moment has passed.
     """
     if df.empty:
         return df
 
-    today = date.today()
-    last = df.index[-1]
+    today     = date.today()
+    last      = df.index[-1]
     last_date = last.date() if hasattr(last, "date") else last
 
+    # True once the US market has closed for the day (4:00 PM ET or later)
+    now_et        = datetime.now(ZoneInfo("America/New_York"))
+    market_closed = now_et.hour >= 16
+
+    _REF = np.datetime64("2000-01-03")
+
+    def _bday_group(d: date) -> int:
+        """Busday pair-group used for 2-Day resampling."""
+        return int(np.busday_count(_REF, np.datetime64(d.strftime("%Y-%m-%d")))) // 2
+
+    # ------------------------------------------------------------------ Daily
     if timeframe == "Daily":
-        if last_date >= today:
-            # Only drop if the US market is still open (before 4:00 PM ET).
-            # After close the bar is complete and should be kept.
-            now_et = datetime.now(ZoneInfo("America/New_York"))
-            market_open = now_et.hour < 16  # True = before 4 PM ET
-            if market_open:
-                df = df.iloc[:-1]
-
-    elif timeframe == "Weekly":
-        # Only drop if today is a weekday — on weekends the prior week is fully closed.
-        # today.weekday(): 0=Mon … 4=Fri, 5=Sat, 6=Sun
-        if today.weekday() < 5:
-            lw = last_date.isocalendar()
-            tw = today.isocalendar()
-            if lw[0] == tw[0] and lw[1] == tw[1]:
-                df = df.iloc[:-1]
-
-    elif timeframe == "Monthly":
-        if last_date.year == today.year and last_date.month == today.month:
+        # Drop if today's bar is present but the session hasn't closed yet.
+        if last_date >= today and not market_closed:
             df = df.iloc[:-1]
 
+    # ----------------------------------------------------------------- 2-Day
+    elif timeframe == "2-Day":
+        # Resampled bars are labelled with the FIRST day of the pair.
+        # The bar is complete only after the SECOND day closes at 4 PM ET.
+        # If today is a weekday and falls in the same pair as the last bar
+        # (and is therefore the 2nd day), drop while market is still open.
+        if today.weekday() < 5:
+            if _bday_group(last_date) == _bday_group(today) and last_date != today:
+                if not market_closed:
+                    df = df.iloc[:-1]
+
+    # ---------------------------------------------------------------- Weekly
+    elif timeframe == "Weekly":
+        if today.weekday() < 5:                          # weekdays only
+            lw = last_date.isocalendar()
+            tw = today.isocalendar()
+            if lw[0] == tw[0] and lw[1] == tw[1]:       # same ISO week
+                # Last trading day of this week (usually Friday, but
+                # rolls back to Thursday on holiday Fridays, etc.)
+                friday     = today + timedelta(days=(4 - today.weekday()))
+                last_bday  = pd.Timestamp(
+                    np.busday_offset(friday.strftime("%Y-%m-%d"), 0, roll="preceding")
+                ).date()
+
+                if today < last_bday:
+                    # More trading days still to come this week → always drop
+                    df = df.iloc[:-1]
+                elif today == last_bday and not market_closed:
+                    # Last trading day of the week but session still open → drop
+                    df = df.iloc[:-1]
+                # else: last trading day is done → keep the bar
+
+    # --------------------------------------------------------------- Monthly
+    elif timeframe == "Monthly":
+        if last_date.year == today.year and last_date.month == today.month:
+            last_bday = _last_bday_of_month(today.year, today.month)
+            if today < last_bday:
+                df = df.iloc[:-1]
+            elif today == last_bday and not market_closed:
+                df = df.iloc[:-1]
+            # else: month's last session is done → keep
+
+    # ------------------------------------------------------------- Quarterly
     elif timeframe == "Quarterly":
         lq = (last_date.month - 1) // 3
         tq = (today.month - 1) // 3
         if last_date.year == today.year and lq == tq:
-            df = df.iloc[:-1]
+            q_last_month = (tq + 1) * 3          # 3, 6, 9, or 12
+            last_bday    = _last_bday_of_month(today.year, q_last_month)
+            if today < last_bday:
+                df = df.iloc[:-1]
+            elif today == last_bday and not market_closed:
+                df = df.iloc[:-1]
+            # else: quarter's last session is done → keep
 
     return df
 
