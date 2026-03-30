@@ -137,7 +137,8 @@
     "STX",
     "SNDK",
     "SPOT",
-    "RDDT"
+    "RDDT",
+    "HIMS"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -154,6 +155,7 @@
     "STX": "Technology",
     "SNDK": "Technology",
     "SPOT": "Communication",
-    "RDDT": "Communication"
+    "RDDT": "Communication",
+    "HIMS": "Healthcare"
   }
 }
