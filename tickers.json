@@ -123,9 +123,11 @@
     "AEM.TO"
   ],
   "custom": [
-    "CAT"
+    "CAT",
+    "DE"
   ],
   "sectors": {
-    "CAT": "Industrials"
+    "CAT": "Industrials",
+    "DE": "Industrials"
   }
 }
