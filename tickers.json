@@ -133,7 +133,8 @@
     "INTU",
     "LRCX",
     "AMAT",
-    "ASML"
+    "ASML",
+    "STX"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -146,6 +147,7 @@
     "INTU": "Technology",
     "LRCX": "Technology",
     "AMAT": "Technology",
-    "ASML": "Technology"
+    "ASML": "Technology",
+    "STX": "Technology"
   }
 }
