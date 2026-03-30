@@ -9,7 +9,7 @@ all signals are based on fully closed bars.
 
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import date
+from datetime import date, timedelta
 
 import numpy as np
 import pandas as pd
@@ -163,6 +163,66 @@ def _fetch_one(ticker: str, timeframe: str) -> tuple[str, pd.DataFrame | None]:
         return ticker, (df if len(df) >= 3 else None)
     except Exception:
         return ticker, None
+
+
+# ---------------------------------------------------------------------------
+# FTFC (Full Timeframe Continuity)
+# ---------------------------------------------------------------------------
+
+def compute_ftfc(daily_df: pd.DataFrame) -> str:
+    """
+    Compute Full Timeframe Continuity status from a daily OHLCV DataFrame.
+
+    Bullish FTFC : current close > quarterly open AND monthly open AND weekly open
+    Bearish FTFC : current close < quarterly open AND monthly open AND weekly open
+
+    'Opening price' for each period = Open of the first actual trading day
+    in that period (automatically handles weekends/holidays since we use
+    real yfinance data — no hardcoded calendars needed).
+
+    Returns 'Bullish', 'Bearish', or '' (no FTFC / partial alignment).
+    """
+    if daily_df is None or daily_df.empty or len(daily_df) < 5:
+        return ""
+
+    today = date.today()
+    current_close = float(daily_df["Close"].iloc[-1])
+
+    # Convert tz-aware DatetimeIndex to plain date objects
+    bar_dates = np.array(
+        [idx.date() if hasattr(idx, "date") else idx for idx in daily_df.index]
+    )
+    opens = daily_df["Open"].values
+
+    def first_open_on_or_after(start: date) -> float | None:
+        """Return the Open of the first trading bar on or after `start`."""
+        mask = bar_dates >= start
+        if not mask.any():
+            return None
+        return float(opens[mask][0])
+
+    # --- Quarter start: first calendar day of current quarter ---
+    q_month = ((today.month - 1) // 3) * 3 + 1   # 1, 4, 7, or 10
+    q_start = date(today.year, q_month, 1)
+
+    # --- Month start: first calendar day of current month ---
+    m_start = date(today.year, today.month, 1)
+
+    # --- Week start: Monday of the current (or most recent) week ---
+    w_start = today - timedelta(days=today.weekday())
+
+    q_open = first_open_on_or_after(q_start)
+    m_open = first_open_on_or_after(m_start)
+    w_open = first_open_on_or_after(w_start)
+
+    if q_open is None or m_open is None or w_open is None:
+        return ""
+
+    if current_close > q_open and current_close > m_open and current_close > w_open:
+        return "Bullish"
+    if current_close < q_open and current_close < m_open and current_close < w_open:
+        return "Bearish"
+    return ""
 
 
 # ---------------------------------------------------------------------------

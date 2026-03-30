@@ -12,7 +12,7 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 
-from data_fetcher import fetch_batch
+from data_fetcher import compute_ftfc, fetch_batch
 from signals import classify_bar, scan_dataframe
 
 # ---------------------------------------------------------------------------
@@ -103,7 +103,7 @@ with st.sidebar:
     )
     direction_filter = st.radio(
         "Direction:",
-        ["All", "Bullish", "Bearish", "Neutral"],
+        ["All", "Bullish", "Bearish", "Neutral", "FTFC Bullish", "FTFC Bearish"],
         horizontal=True,
     )
 
@@ -182,18 +182,33 @@ if st.button("▶  Run Scan", type="primary"):
     results: list[dict] = []
     errors:  list[str]  = []
 
-    progress = st.progress(0.0, text="Initializing…")
+    progress = st.progress(0.0, text="Computing FTFC…")
+
+    # Always fetch daily data first — needed for FTFC regardless of selected timeframes
+    daily_batch = fetch_batch(ticker_list, "Daily")
+    ftfc_map    = {ticker: compute_ftfc(df) for ticker, df in daily_batch.items()}
+
     total_steps = len(selected_tfs)
 
     for step, tf in enumerate(selected_tfs, start=1):
         progress.progress((step - 0.5) / total_steps, text=f"Fetching **{tf}** data…")
 
-        batch = fetch_batch(ticker_list, tf)
+        # Reuse daily batch if Daily is one of the selected timeframes
+        batch = daily_batch if tf == "Daily" else fetch_batch(ticker_list, tf)
 
         for ticker, df in batch.items():
             if df is None:
                 errors.append(f"{ticker} ({tf}): no data / insufficient bars")
                 continue
+
+            ticker_ftfc = ftfc_map.get(ticker, "")
+
+            # Apply FTFC direction filters at the ticker level
+            if direction_filter == "FTFC Bullish" and ticker_ftfc != "Bullish":
+                continue
+            if direction_filter == "FTFC Bearish" and ticker_ftfc != "Bearish":
+                continue
+
             try:
                 sigs = scan_dataframe(df)
             except Exception as exc:
@@ -201,9 +216,10 @@ if st.button("▶  Run Scan", type="primary"):
                 continue
 
             for sig in sigs:
-                # Apply direction filter
-                if direction_filter != "All" and sig["direction"] != direction_filter:
-                    continue
+                # Apply standard direction filter
+                if direction_filter in ("Bullish", "Bearish", "Neutral"):
+                    if sig["direction"] != direction_filter:
+                        continue
                 # Apply signal-name filter
                 if sig["signal"] not in selected_signals:
                     continue
@@ -223,6 +239,7 @@ if st.button("▶  Run Scan", type="primary"):
                         "Signal":     sig["signal"],
                         "Direction":  sig["direction"],
                         "Bar Type":   sig["bar_type"],
+                        "FTFC":       ticker_ftfc,
                         "Date":       date_str,
                         "Open":       round(float(last["Open"]),  2),
                         "High":       round(float(last["High"]),  2),
@@ -263,15 +280,19 @@ if not results:
     st.stop()
 
 # -- Summary metrics --
-bullish = sum(1 for r in results if r["Direction"] == "Bullish")
-bearish = sum(1 for r in results if r["Direction"] == "Bearish")
-neutral = sum(1 for r in results if r["Direction"] == "Neutral")
+bullish      = sum(1 for r in results if r["Direction"] == "Bullish")
+bearish      = sum(1 for r in results if r["Direction"] == "Bearish")
+neutral      = sum(1 for r in results if r["Direction"] == "Neutral")
+ftfc_bull    = len({r["Ticker"] for r in results if r["FTFC"] == "Bullish"})
+ftfc_bear    = len({r["Ticker"] for r in results if r["FTFC"] == "Bearish"})
 
-c1, c2, c3, c4, _ = st.columns([1, 1, 1, 1, 2])
-c1.metric("Signals",  len(results))
-c2.metric("🟢 Bullish", bullish)
-c3.metric("🔴 Bearish", bearish)
-c4.metric("🟡 Neutral", neutral)
+c1, c2, c3, c4, c5, c6 = st.columns(6)
+c1.metric("Signals",        len(results))
+c2.metric("🟢 Bullish",     bullish)
+c3.metric("🔴 Bearish",     bearish)
+c4.metric("🟡 Neutral",     neutral)
+c5.metric("🟢 FTFC Bull",   ftfc_bull)
+c6.metric("🔴 FTFC Bear",   ftfc_bear)
 
 # -- Build + sort DataFrame --
 df_res = pd.DataFrame(results)
@@ -302,10 +323,18 @@ def _style_signal(val: str) -> str:
         return "color: #ff1744"
     return "color: #ffd600"
 
+def _style_ftfc(val: str) -> str:
+    if val == "Bullish":
+        return "color: #00c853; font-weight: 600"
+    if val == "Bearish":
+        return "color: #ff1744; font-weight: 600"
+    return "color: #888888"
+
 styled = (
     df_res.style
     .map(_style_direction, subset=["Direction"])
     .map(_style_signal,    subset=["Signal"])
+    .map(_style_ftfc,      subset=["FTFC"])
 )
 
 st.dataframe(styled, use_container_width=True, hide_index=True, height=520)
