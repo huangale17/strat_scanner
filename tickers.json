@@ -123,6 +123,7 @@
     "AEM.TO"
   ],
   "custom": [
-    "COF"
+    "COF",
+    "CAT"
   ]
 }
