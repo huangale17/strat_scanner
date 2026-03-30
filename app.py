@@ -13,6 +13,7 @@ import pandas as pd
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
+import yfinance as yf
 
 from data_fetcher import compute_ftfc, fetch_batch
 from signals import classify_bar, scan_dataframe
@@ -45,6 +46,36 @@ TICKERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tickers
 
 ALL_SIGNALS    = ["Shooter", "Hammer", "2U Red", "2D Green", "Inside Bar", "Double Inside (1-1)", "Outside Bar", "RevStrat 1-2U", "RevStrat 1-2D", "3-2U", "3-2D"]
 ALL_TIMEFRAMES = ["Daily", "Weekly", "Monthly", "Quarterly"]
+
+# Mapping from yfinance sector strings → our internal sector names
+_YF_SECTOR_MAP = {
+    "Technology":             "Technology",
+    "Financial Services":     "Financials",
+    "Healthcare":             "Healthcare",
+    "Consumer Cyclical":      "Consumer Discretionary",
+    "Consumer Defensive":     "Consumer Staples",
+    "Energy":                 "Energy",
+    "Industrials":            "Industrials",
+    "Basic Materials":        "Materials",
+    "Communication Services": "Communication",
+    "Utilities":              "Utilities",
+    "Real Estate":            "Real Estate",
+}
+
+
+def lookup_sector(ticker: str) -> str:
+    """Fetch sector for a ticker via yfinance. Returns 'Other' on failure."""
+    try:
+        info = yf.Ticker(ticker).info
+        yf_sector = info.get("sector", "")
+        return _YF_SECTOR_MAP.get(yf_sector, "Other")
+    except Exception:
+        return "Other"
+
+
+def get_effective_sector_map(tickers_data: dict) -> dict:
+    """Merge hardcoded SECTOR_MAP with any custom sectors stored in tickers.json."""
+    return {**SECTOR_MAP, **tickers_data.get("sectors", {})}
 
 # ---------------------------------------------------------------------------
 # Sector map — used to add a Sector column to scan results
@@ -247,7 +278,8 @@ with st.sidebar:
         horizontal=True,
     )
 
-    all_sectors = sorted(set(SECTOR_MAP.values()))
+    _eff_map    = get_effective_sector_map(tickers_data)
+    all_sectors = sorted(set(_eff_map.values())) + ["Other"]
     sector_filter = st.multiselect(
         "Sectors:",
         all_sectors,
@@ -285,9 +317,12 @@ with st.sidebar:
         if new_t in flat_list(tickers_data):
             st.warning(f"{new_t} already in list.")
         else:
+            with st.spinner(f"Looking up sector for {new_t}…"):
+                sector = lookup_sector(new_t)
             tickers_data.setdefault("custom", []).append(new_t)
+            tickers_data.setdefault("sectors", {})[new_t] = sector
             save_tickers(tickers_data)
-            st.success(f"Added {new_t}.")
+            st.success(f"Added {new_t} → {sector}.")
             st.rerun()
 
     # Remove ticker (custom only)
@@ -429,8 +464,9 @@ if not results:
     st.stop()
 
 # Apply sector filter
+_eff_map = get_effective_sector_map(tickers_data)
 if sector_filter:
-    results = [r for r in results if SECTOR_MAP.get(r["Ticker"], "Other") in sector_filter]
+    results = [r for r in results if _eff_map.get(r["Ticker"], "Other") in sector_filter]
 
 if not results:
     st.info("No signals found for the selected sectors.")
@@ -455,7 +491,7 @@ c6.metric("🔴 FTFC Bear",   ftfc_bear)
 df_res = pd.DataFrame(results)
 
 # Add Sector column
-df_res["Sector"] = df_res["Ticker"].map(lambda t: SECTOR_MAP.get(t, "Other"))
+df_res["Sector"] = df_res["Ticker"].map(lambda t: _eff_map.get(t, "Other"))
 
 tf_order = {"Quarterly": 0, "Monthly": 1, "Weekly": 2, "2-Day": 3, "Daily": 4}
 df_res["_tf_sort"] = df_res["Timeframe"].map(tf_order)
