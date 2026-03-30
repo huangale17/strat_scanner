@@ -128,7 +128,8 @@
     "SCHW",
     "DDOG",
     "NBIS",
-    "CRWV"
+    "CRWV",
+    "APP"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -136,6 +137,7 @@
     "SCHW": "Financials",
     "DDOG": "Technology",
     "NBIS": "Communication",
-    "CRWV": "Technology"
+    "CRWV": "Technology",
+    "APP": "Communication"
   }
 }
