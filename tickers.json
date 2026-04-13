@@ -141,7 +141,8 @@
     "HIMS",
     "DASH",
     "ASTS",
-    "AEHR"
+    "AEHR",
+    "IONQ"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -162,6 +163,7 @@
     "HIMS": "Healthcare",
     "DASH": "Consumer Discretionary",
     "ASTS": "Other",
-    "AEHR": "Other"
+    "AEHR": "Other",
+    "IONQ": "Other"
   }
 }
