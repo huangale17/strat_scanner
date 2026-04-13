@@ -140,7 +140,8 @@
     "RDDT",
     "HIMS",
     "DASH",
-    "ASTS"
+    "ASTS",
+    "AEHR"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -160,6 +161,7 @@
     "RDDT": "Communication",
     "HIMS": "Healthcare",
     "DASH": "Consumer Discretionary",
-    "ASTS": "Other"
+    "ASTS": "Other",
+    "AEHR": "Other"
   }
 }
