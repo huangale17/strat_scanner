@@ -381,12 +381,15 @@ if st.button("▶  Run Scan", type="primary"):
     daily_batch = fetch_batch(ticker_list, "Daily")
     ftfc_map    = {ticker: compute_ftfc(df) for ticker, df in daily_batch.items()}
 
-    # Pre-fetch all needed batches (selected TFs + their HTFs for target levels)
+    # Pre-fetch all needed batches (selected TFs + two levels of HTFs for MTF context)
     tfs_to_fetch: set[str] = set(selected_tfs)
     for tf in selected_tfs:
-        htf = HTF_MAP.get(tf)
-        if htf:
-            tfs_to_fetch.add(htf)
+        htf1 = HTF_MAP.get(tf)
+        if htf1:
+            tfs_to_fetch.add(htf1)
+            htf2 = HTF_MAP.get(htf1)
+            if htf2:
+                tfs_to_fetch.add(htf2)
     tfs_to_fetch.discard("Daily")  # already have daily_batch
 
     tf_batches: dict[str, dict] = {"Daily": daily_batch}
