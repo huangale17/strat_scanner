@@ -583,6 +583,77 @@ def _style_setup_type(val: str) -> str:
         return "color: #ff9800; font-weight: 600"
     return "color: #888888"
 
+
+def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict) -> pd.DataFrame:
+    """
+    Pivot flat scan results into one row per ticker, one column per timeframe.
+    Each TF cell shows signal(s) prefixed with a direction emoji.
+    Confluence counts how many timeframes have an active signal.
+    """
+    DIR_EMOJI   = {"Bullish": "🟢", "Bearish": "🔴", "Neutral": "🟡"}
+    TF_PRIORITY = {"Daily": 0, "2-Day": 1, "Weekly": 2, "Monthly": 3, "Quarterly": 4}
+
+    mtf: dict[str, dict] = {}
+
+    for r in results:
+        ticker = r["Ticker"]
+        tf     = r["Timeframe"]
+
+        if ticker not in mtf:
+            mtf[ticker] = {
+                "Ticker":   ticker,
+                "Sector":   sector_map.get(ticker, "Other"),
+                "FTFC":     r["FTFC"],
+                "_htf_pri": 99,
+            }
+
+        # Format signal cell: emoji + signal name; join multiples with separator
+        cell = f"{DIR_EMOJI.get(r['Direction'], '')} {r['Signal']}"
+        if tf in mtf[ticker]:
+            mtf[ticker][tf] += f"  /  {cell}"
+        else:
+            mtf[ticker][tf] = cell
+
+        # HTF targets — keep from the most granular TF that has them
+        pri = TF_PRIORITY.get(tf, 99)
+        if pri < mtf[ticker]["_htf_pri"] and r.get("HTF High") is not None:
+            mtf[ticker]["_htf_pri"] = pri
+            mtf[ticker]["HTF"]      = r.get("HTF", "—")
+            mtf[ticker]["HTF High"] = r["HTF High"]
+            mtf[ticker]["HTF Low"]  = r["HTF Low"]
+
+    # Assemble output rows
+    rows = []
+    for ticker, row in mtf.items():
+        tf_count = sum(1 for tf in scan_tfs if tf in row)
+        out: dict = {
+            "Ticker": row["Ticker"],
+            "Sector": row["Sector"],
+            "FTFC":   row["FTFC"],
+        }
+        for tf in scan_tfs:
+            out[tf] = row.get(tf, "—")
+        out["Confluence"] = f"{tf_count}/{len(scan_tfs)}"
+        out["HTF"]        = row.get("HTF", "—")
+        out["HTF High"]   = row.get("HTF High")
+        out["HTF Low"]    = row.get("HTF Low")
+        rows.append(out)
+
+    if not rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(rows)
+
+    # Sort: highest confluence first, then sector, then ticker
+    df["_conf_sort"] = df["Confluence"].str.split("/").str[0].astype(int)
+    df = (
+        df.sort_values(["_conf_sort", "Sector", "Ticker"], ascending=[False, True, True])
+          .drop(columns=["_conf_sort"])
+          .reset_index(drop=True)
+    )
+    return df
+
+
 styled = (
     df_res.style
     .map(_style_direction,   subset=["Direction"])
@@ -591,75 +662,120 @@ styled = (
     .map(_style_setup_type,  subset=["Setup Type"])
 )
 
-st.dataframe(styled, use_container_width=True, hide_index=True, height=520)
+tab1, tab2 = st.tabs(["📋 Flat View", "🔀 MTF View"])
 
-# -- Buttons row --
-btn_col1, btn_col2, _ = st.columns([1, 1.4, 4])
+with tab1:
+    st.dataframe(styled, use_container_width=True, hide_index=True, height=520)
 
-# Download CSV
-csv = df_res.to_csv(index=False)
-with btn_col1:
-    st.download_button(
-        label="⬇  Download CSV",
-        data=csv,
-        file_name=f"strat_scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-        mime="text/csv",
+    # -- Buttons row --
+    btn_col1, btn_col2, _ = st.columns([1, 1.4, 4])
+
+    # Download CSV
+    csv = df_res.to_csv(index=False)
+    with btn_col1:
+        st.download_button(
+            label="⬇  Download CSV",
+            data=csv,
+            file_name=f"strat_scan_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+            mime="text/csv",
+        )
+
+    # Copy Tickers to clipboard (deduped, TradingView-formatted, comma-separated)
+    with btn_col2:
+        unique_tickers = ",".join(
+            to_tradingview_format(t) for t in sorted(df_res["Ticker"].unique().tolist())
+        )
+        components.html(
+            f"""
+            <script>
+            function copyTickers() {{
+                const text = "{unique_tickers}";
+                const btn = document.getElementById("copy-btn");
+                navigator.clipboard.writeText(text).then(function() {{
+                    btn.textContent = "✓ Copied!";
+                    btn.style.borderColor = "#00c853";
+                    btn.style.color = "#00c853";
+                    setTimeout(() => {{
+                        btn.textContent = "📋 Copy Tickers";
+                        btn.style.borderColor = "#555";
+                        btn.style.color = "white";
+                    }}, 2000);
+                }}, function() {{
+                    // execCommand fallback for older browsers
+                    const el = document.createElement("textarea");
+                    el.value = text;
+                    el.style.position = "fixed";
+                    el.style.opacity = "0";
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(el);
+                    btn.textContent = "✓ Copied!";
+                    btn.style.borderColor = "#00c853";
+                    btn.style.color = "#00c853";
+                    setTimeout(() => {{
+                        btn.textContent = "📋 Copy Tickers";
+                        btn.style.borderColor = "#555";
+                        btn.style.color = "white";
+                    }}, 2000);
+                }});
+            }}
+            </script>
+            <button id="copy-btn" onclick="copyTickers()" style="
+                background-color: #262730;
+                color: white;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 5px 16px;
+                font-size: 14px;
+                cursor: pointer;
+                font-family: sans-serif;
+                width: 100%;
+                height: 38px;
+                transition: color 0.2s, border-color 0.2s;
+            ">📋 Copy Tickers</button>
+            """,
+            height=45,
+        )
+
+with tab2:
+    st.caption(
+        "One row per ticker. Each timeframe column shows the signal(s) that fired. "
+        "**Confluence** = how many timeframes have an active signal. "
+        "Sorted highest confluence first."
     )
 
-# Copy Tickers to clipboard (deduped, TradingView-formatted, comma-separated)
-with btn_col2:
-    unique_tickers = ",".join(
-        to_tradingview_format(t) for t in sorted(df_res["Ticker"].unique().tolist())
-    )
-    components.html(
-        f"""
-        <script>
-        function copyTickers() {{
-            const text = "{unique_tickers}";
-            const btn = document.getElementById("copy-btn");
-            navigator.clipboard.writeText(text).then(function() {{
-                btn.textContent = "✓ Copied!";
-                btn.style.borderColor = "#00c853";
-                btn.style.color = "#00c853";
-                setTimeout(() => {{
-                    btn.textContent = "📋 Copy Tickers";
-                    btn.style.borderColor = "#555";
-                    btn.style.color = "white";
-                }}, 2000);
-            }}, function() {{
-                // execCommand fallback for older browsers
-                const el = document.createElement("textarea");
-                el.value = text;
-                el.style.position = "fixed";
-                el.style.opacity = "0";
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand("copy");
-                document.body.removeChild(el);
-                btn.textContent = "✓ Copied!";
-                btn.style.borderColor = "#00c853";
-                btn.style.color = "#00c853";
-                setTimeout(() => {{
-                    btn.textContent = "📋 Copy Tickers";
-                    btn.style.borderColor = "#555";
-                    btn.style.color = "white";
-                }}, 2000);
-            }});
-        }}
-        </script>
-        <button id="copy-btn" onclick="copyTickers()" style="
-            background-color: #262730;
-            color: white;
-            border: 1px solid #555;
-            border-radius: 4px;
-            padding: 5px 16px;
-            font-size: 14px;
-            cursor: pointer;
-            font-family: sans-serif;
-            width: 100%;
-            height: 38px;
-            transition: color 0.2s, border-color 0.2s;
-        ">📋 Copy Tickers</button>
-        """,
-        height=45,
-    )
+    # Use the TF columns in logical display order
+    tf_display_order = ["Daily", "2-Day", "Weekly", "Monthly", "Quarterly"]
+    scan_tfs = [tf for tf in tf_display_order if tf in df_res["Timeframe"].values]
+
+    df_mtf = build_mtf_pivot(results, scan_tfs, _eff_map)
+
+    if df_mtf.empty:
+        st.info("No MTF data to display.")
+    else:
+        def _style_confluence(val: str) -> str:
+            try:
+                num, den = val.split("/")
+                if int(num) == int(den) and int(den) > 1:
+                    return "color: #00c853; font-weight: 700"   # all TFs aligned
+                if int(num) > 1:
+                    return "color: #ffd600; font-weight: 600"   # partial confluence
+            except Exception:
+                pass
+            return "color: #888888"
+
+        styled_mtf = (
+            df_mtf.style
+            .map(_style_ftfc,       subset=["FTFC"])
+            .map(_style_confluence, subset=["Confluence"])
+        )
+        st.dataframe(styled_mtf, use_container_width=True, hide_index=True, height=520)
+
+        mtf_csv = df_mtf.to_csv(index=False)
+        st.download_button(
+            label="⬇  Download MTF CSV",
+            data=mtf_csv,
+            file_name=f"strat_mtf_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+            mime="text/csv",
+        )
