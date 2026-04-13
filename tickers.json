@@ -139,7 +139,8 @@
     "SPOT",
     "RDDT",
     "HIMS",
-    "DASH"
+    "DASH",
+    "ASTS"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -158,6 +159,7 @@
     "SPOT": "Communication",
     "RDDT": "Communication",
     "HIMS": "Healthcare",
-    "DASH": "Consumer Discretionary"
+    "DASH": "Consumer Discretionary",
+    "ASTS": "Other"
   }
 }
