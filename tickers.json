@@ -142,7 +142,8 @@
     "DASH",
     "ASTS",
     "AEHR",
-    "IONQ"
+    "IONQ",
+    "LITE"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -164,6 +165,7 @@
     "DASH": "Consumer Discretionary",
     "ASTS": "Other",
     "AEHR": "Other",
-    "IONQ": "Other"
+    "IONQ": "Other",
+    "LITE": "Other"
   }
 }
