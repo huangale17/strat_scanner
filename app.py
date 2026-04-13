@@ -47,6 +47,15 @@ TICKERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tickers
 ALL_SIGNALS    = ["Shooter", "Hammer", "2U Red", "2D Green", "Inside Bar", "Double Inside (1-1)", "Outside Bar", "RevStrat 1-2U", "RevStrat 1-2D", "3-2U", "3-2D"]
 ALL_TIMEFRAMES = ["Daily", "Weekly", "Monthly", "Quarterly"]
 
+# Higher timeframe for each scanning timeframe — used for target levels
+HTF_MAP: dict[str, str | None] = {
+    "Daily":     "Weekly",
+    "2-Day":     "Weekly",
+    "Weekly":    "Monthly",
+    "Monthly":   "Quarterly",
+    "Quarterly": None,
+}
+
 # Mapping from yfinance sector strings → our internal sector names
 _YF_SECTOR_MAP = {
     "Technology":             "Technology",
@@ -372,13 +381,28 @@ if st.button("▶  Run Scan", type="primary"):
     daily_batch = fetch_batch(ticker_list, "Daily")
     ftfc_map    = {ticker: compute_ftfc(df) for ticker, df in daily_batch.items()}
 
+    # Pre-fetch all needed batches (selected TFs + their HTFs for target levels)
+    tfs_to_fetch: set[str] = set(selected_tfs)
+    for tf in selected_tfs:
+        htf = HTF_MAP.get(tf)
+        if htf:
+            tfs_to_fetch.add(htf)
+    tfs_to_fetch.discard("Daily")  # already have daily_batch
+
+    tf_batches: dict[str, dict] = {"Daily": daily_batch}
+    fetch_list = sorted(tfs_to_fetch)
+    for i, tf in enumerate(fetch_list, start=1):
+        progress.progress(0.1 * i / max(len(fetch_list), 1), text=f"Fetching **{tf}** data…")
+        tf_batches[tf] = fetch_batch(ticker_list, tf)
+
     total_steps = len(selected_tfs)
 
     for step, tf in enumerate(selected_tfs, start=1):
-        progress.progress((step - 0.5) / total_steps, text=f"Fetching **{tf}** data…")
+        progress.progress(0.1 + 0.9 * (step - 0.5) / total_steps, text=f"Scanning **{tf}**…")
 
-        # Reuse daily batch if Daily is one of the selected timeframes
-        batch = daily_batch if tf == "Daily" else fetch_batch(ticker_list, tf)
+        batch    = tf_batches.get(tf, {})
+        htf_tf   = HTF_MAP.get(tf)
+        htf_batch: dict = tf_batches.get(htf_tf, {}) if htf_tf else {}
 
         for ticker, df in batch.items():
             if df is None:
@@ -399,6 +423,14 @@ if st.button("▶  Run Scan", type="primary"):
                 errors.append(f"{ticker} ({tf}): {exc}")
                 continue
 
+            # Higher timeframe targets for this ticker
+            htf_high = htf_low = None
+            htf_df = htf_batch.get(ticker)
+            if htf_df is not None and len(htf_df) >= 1:
+                htf_bar  = htf_df.iloc[-1]
+                htf_high = round(float(htf_bar["High"]), 2)
+                htf_low  = round(float(htf_bar["Low"]),  2)
+
             for sig in sigs:
                 # Apply standard direction filter
                 if direction_filter in ("Bullish", "Bearish", "Neutral"):
@@ -416,25 +448,37 @@ if st.button("▶  Run Scan", type="primary"):
                     else str(last.name)[:10]
                 )
 
+                # Continuation: signal direction matches FTFC; Reversal: goes against it
+                if sig["direction"] == "Neutral":
+                    setup_type = "Neutral"
+                elif ticker_ftfc in ("Bullish", "Bearish"):
+                    setup_type = "Continuation" if sig["direction"] == ticker_ftfc else "Reversal"
+                else:
+                    setup_type = "—"
+
                 results.append(
                     {
-                        "Ticker":     ticker,
-                        "Timeframe":  tf,
-                        "Signal":     sig["signal"],
-                        "Direction":  sig["direction"],
-                        "Bar Type":   sig["bar_type"],
-                        "FTFC":       ticker_ftfc,
-                        "Date":       date_str,
-                        "Open":       round(float(last["Open"]),  2),
-                        "High":       round(float(last["High"]),  2),
-                        "Low":        round(float(last["Low"]),   2),
-                        "Close":      round(float(last["Close"]), 2),
-                        "Prev High":  round(float(prev["High"]),  2),
-                        "Prev Low":   round(float(prev["Low"]),   2),
+                        "Ticker":      ticker,
+                        "Timeframe":   tf,
+                        "Signal":      sig["signal"],
+                        "Direction":   sig["direction"],
+                        "Setup Type":  setup_type,
+                        "Bar Type":    sig["bar_type"],
+                        "FTFC":        ticker_ftfc,
+                        "Date":        date_str,
+                        "Open":        round(float(last["Open"]),  2),
+                        "High":        round(float(last["High"]),  2),
+                        "Low":         round(float(last["Low"]),   2),
+                        "Close":       round(float(last["Close"]), 2),
+                        "Prev High":   round(float(prev["High"]),  2),
+                        "Prev Low":    round(float(prev["Low"]),   2),
+                        "HTF":         htf_tf or "—",
+                        "HTF High":    htf_high,
+                        "HTF Low":     htf_low,
                     }
                 )
 
-        progress.progress(step / total_steps, text=f"Done: {tf}")
+        progress.progress(0.1 + 0.9 * step / total_steps, text=f"Done: {tf}")
 
     progress.empty()
 
@@ -503,8 +547,9 @@ df_res = (
 )
 
 # Reorder columns so Sector appears early
-col_order = ["Ticker", "Sector", "Timeframe", "Signal", "Direction", "FTFC",
-             "Bar Type", "Date", "Open", "High", "Low", "Close", "Prev High", "Prev Low"]
+col_order = ["Ticker", "Sector", "Timeframe", "Signal", "Direction", "Setup Type", "FTFC",
+             "Bar Type", "Date", "Open", "High", "Low", "Close", "Prev High", "Prev Low",
+             "HTF", "HTF High", "HTF Low"]
 df_res = df_res[[c for c in col_order if c in df_res.columns]]
 
 # -- Styling --
@@ -531,11 +576,19 @@ def _style_ftfc(val: str) -> str:
         return "color: #ff1744; font-weight: 600"
     return "color: #888888"
 
+def _style_setup_type(val: str) -> str:
+    if val == "Continuation":
+        return "color: #00c853; font-weight: 600"
+    if val == "Reversal":
+        return "color: #ff9800; font-weight: 600"
+    return "color: #888888"
+
 styled = (
     df_res.style
-    .map(_style_direction, subset=["Direction"])
-    .map(_style_signal,    subset=["Signal"])
-    .map(_style_ftfc,      subset=["FTFC"])
+    .map(_style_direction,   subset=["Direction"])
+    .map(_style_signal,      subset=["Signal"])
+    .map(_style_ftfc,        subset=["FTFC"])
+    .map(_style_setup_type,  subset=["Setup Type"])
 )
 
 st.dataframe(styled, use_container_width=True, hide_index=True, height=520)
