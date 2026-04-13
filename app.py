@@ -482,9 +482,72 @@ if st.button("▶  Run Scan", type="primary"):
 
     progress.empty()
 
-    st.session_state["results"]   = results
-    st.session_state["errors"]    = errors
-    st.session_state["scan_time"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Scan HTF batches for MTF view context — data already in memory, no extra network calls.
+    # Only run for tickers that produced at least one signal in the primary scan.
+    mtf_context: list[dict] = []
+    scanned_tickers = {r["Ticker"] for r in results}
+    htf_only_tfs = [tf for tf in tf_batches if tf not in selected_tfs and tf != "Daily"]
+
+    for tf in htf_only_tfs:
+        batch    = tf_batches[tf]
+        htf_tf   = HTF_MAP.get(tf)
+        htf_batch: dict = tf_batches.get(htf_tf, {}) if htf_tf else {}
+
+        for ticker, df in batch.items():
+            if df is None or ticker not in scanned_tickers:
+                continue
+            ticker_ftfc = ftfc_map.get(ticker, "")
+            try:
+                sigs = scan_dataframe(df)
+            except Exception:
+                continue
+
+            htf_high = htf_low = None
+            htf_df = htf_batch.get(ticker)
+            if htf_df is not None and len(htf_df) >= 1:
+                htf_bar  = htf_df.iloc[-1]
+                htf_high = round(float(htf_bar["High"]), 2)
+                htf_low  = round(float(htf_bar["Low"]),  2)
+
+            for sig in sigs:
+                last = df.iloc[-1]
+                prev = df.iloc[-2]
+                date_str = (
+                    last.name.strftime("%Y-%m-%d")
+                    if hasattr(last.name, "strftime")
+                    else str(last.name)[:10]
+                )
+                if sig["direction"] == "Neutral":
+                    setup_type = "Neutral"
+                elif ticker_ftfc in ("Bullish", "Bearish"):
+                    setup_type = "Continuation" if sig["direction"] == ticker_ftfc else "Reversal"
+                else:
+                    setup_type = "—"
+
+                mtf_context.append({
+                    "Ticker":     ticker,
+                    "Timeframe":  tf,
+                    "Signal":     sig["signal"],
+                    "Direction":  sig["direction"],
+                    "Setup Type": setup_type,
+                    "Bar Type":   sig["bar_type"],
+                    "FTFC":       ticker_ftfc,
+                    "Date":       date_str,
+                    "Open":       round(float(last["Open"]),  2),
+                    "High":       round(float(last["High"]),  2),
+                    "Low":        round(float(last["Low"]),   2),
+                    "Close":      round(float(last["Close"]), 2),
+                    "Prev High":  round(float(prev["High"]),  2),
+                    "Prev Low":   round(float(prev["Low"]),   2),
+                    "HTF":        htf_tf or "—",
+                    "HTF High":   htf_high,
+                    "HTF Low":    htf_low,
+                })
+
+    st.session_state["results"]     = results
+    st.session_state["mtf_context"] = mtf_context
+    st.session_state["errors"]      = errors
+    st.session_state["scan_time"]   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ---------------------------------------------------------------------------
 # Display results
@@ -492,9 +555,10 @@ if st.button("▶  Run Scan", type="primary"):
 if "results" not in st.session_state:
     st.stop()
 
-results   = st.session_state["results"]
-errors    = st.session_state["errors"]
-scan_time = st.session_state["scan_time"]
+results     = st.session_state["results"]
+mtf_context = st.session_state.get("mtf_context", [])
+errors      = st.session_state["errors"]
+scan_time   = st.session_state["scan_time"]
 
 st.caption(f"Last scan: {scan_time}")
 
@@ -745,11 +809,16 @@ with tab2:
         "Sorted highest confluence first."
     )
 
-    # Use the TF columns in logical display order
-    tf_display_order = ["Daily", "2-Day", "Weekly", "Monthly", "Quarterly"]
-    scan_tfs = [tf for tf in tf_display_order if tf in df_res["Timeframe"].values]
+    # Filter MTF context to only tickers that passed the sector filter
+    result_tickers   = {r["Ticker"] for r in results}
+    context_filtered = [r for r in mtf_context if r["Ticker"] in result_tickers]
+    mtf_all          = results + context_filtered
 
-    df_mtf = build_mtf_pivot(results, scan_tfs, _eff_map)
+    # TF columns in logical display order — includes both scanned TFs and HTF context TFs
+    tf_display_order = ["Daily", "2-Day", "Weekly", "Monthly", "Quarterly"]
+    scan_tfs = [tf for tf in tf_display_order if any(r["Timeframe"] == tf for r in mtf_all)]
+
+    df_mtf = build_mtf_pivot(mtf_all, scan_tfs, _eff_map)
 
     if df_mtf.empty:
         st.info("No MTF data to display.")
