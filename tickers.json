@@ -143,7 +143,8 @@
     "ASTS",
     "AEHR",
     "IONQ",
-    "LITE"
+    "LITE",
+    "COHR"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -166,6 +167,7 @@
     "ASTS": "Other",
     "AEHR": "Other",
     "IONQ": "Other",
-    "LITE": "Other"
+    "LITE": "Other",
+    "COHR": "Other"
   }
 }
