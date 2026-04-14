@@ -145,7 +145,8 @@
     "IONQ",
     "LITE",
     "COHR",
-    "TSEM"
+    "TSEM",
+    "BE"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -170,6 +171,7 @@
     "IONQ": "Other",
     "LITE": "Other",
     "COHR": "Other",
-    "TSEM": "Other"
+    "TSEM": "Other",
+    "BE": "Other"
   }
 }
