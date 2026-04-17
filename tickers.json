@@ -146,7 +146,8 @@
     "LITE",
     "COHR",
     "TSEM",
-    "BE"
+    "BE",
+    "TSLA"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -172,6 +173,7 @@
     "LITE": "Other",
     "COHR": "Other",
     "TSEM": "Other",
-    "BE": "Other"
+    "BE": "Other",
+    "TSLA": "Consumer Discretionary"
   }
 }
