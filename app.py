@@ -768,6 +768,18 @@ def _style_pattern(val: str) -> str:
     return "color: #888888"
 
 
+def _style_combo(val: str) -> str:
+    if not val or val == "—":
+        return "color: #888888"
+    parts = val.split("-")
+    last = parts[-1] if parts else ""
+    if last == "2U":
+        return "color: #00c853; font-weight: 600"
+    if last == "2D":
+        return "color: #ff1744; font-weight: 600"
+    return "color: #aaaaaa"
+
+
 def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict, combo_map: dict) -> pd.DataFrame:
     """
     Pivot flat scan results into one row per ticker, one column per timeframe.
@@ -859,6 +871,7 @@ styled = (
     .map(_style_vol_signal,  subset=["Vol Signal"])
     .map(_style_setup_type,  subset=["Setup Type"])
     .map(_style_score,       subset=["Score"])
+    .map(_style_combo,       subset=["Combo"])
     .map(_style_pattern,     subset=["Pattern"])
 )
 
@@ -975,6 +988,7 @@ with tab2:
             .map(_style_ftfc,       subset=["FTFC"])
             .map(_style_tfc_score,  subset=["TFC Score"])
             .map(_style_score,      subset=["Score"])
+            .map(_style_combo,      subset=["Combo"])
             .map(_style_pattern,    subset=["Pattern"])
             .map(_style_confluence, subset=["Confluence"])
         )
