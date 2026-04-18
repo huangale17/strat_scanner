@@ -346,3 +346,49 @@ def compute_tfc_score(
     if bearish > bullish:
         return f"{bearish}/{total} Bearish"
     return f"{bullish}/{total} Mixed"
+
+
+def compute_combo(
+    monthly_df: pd.DataFrame | None,
+    weekly_df: pd.DataFrame | None,
+    daily_df: pd.DataFrame | None,
+) -> tuple[str, str]:
+    """
+    Compute the Monthly-Weekly-Daily bar type combo string and detect named patterns.
+
+    Returns (combo_str, named_pattern):
+        combo_str:     e.g. "2U-1-2U", or "—" if any TF has insufficient data
+        named_pattern: one of "1-2U", "1-2D", "3-2U", "3-2D", "1-1", or ""
+                       Weekly-Daily pair takes priority over Monthly-Weekly.
+    """
+    from signals import classify_bar
+
+    def _bar_type(df: pd.DataFrame | None) -> str | None:
+        if df is None or len(df) < 2:
+            return None
+        last, prev = df.iloc[-1], df.iloc[-2]
+        return classify_bar(
+            float(last["High"]), float(last["Low"]),
+            float(prev["High"]), float(prev["Low"]),
+        )
+
+    m = _bar_type(monthly_df)
+    w = _bar_type(weekly_df)
+    d = _bar_type(daily_df)
+
+    if m is None or w is None or d is None:
+        return "—", ""
+
+    combo_str = f"{m}-{w}-{d}"
+
+    _NAMED = {"1-2U", "1-2D", "3-2U", "3-2D", "1-1"}
+
+    wd = f"{w}-{d}"
+    if wd in _NAMED:
+        return combo_str, wd
+
+    mw = f"{m}-{w}"
+    if mw in _NAMED:
+        return combo_str, mw
+
+    return combo_str, ""

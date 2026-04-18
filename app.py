@@ -15,8 +15,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 import yfinance as yf
 
-from data_fetcher import compute_ftfc, compute_tfc_score, fetch_batch
-from signals import classify_bar, compute_volume_ratio, scan_dataframe
+from data_fetcher import compute_combo, compute_ftfc, compute_tfc_score, fetch_batch
+from signals import classify_bar, compute_signal_score, compute_volume_ratio, scan_dataframe
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -425,6 +425,15 @@ if st.button("▶  Run Scan", type="primary"):
         for ticker in ticker_list
     }
 
+    combo_map = {
+        ticker: compute_combo(
+            monthly_batch.get(ticker),
+            weekly_batch.get(ticker),
+            daily_batch.get(ticker),
+        )
+        for ticker in ticker_list
+    }
+
     total_steps = len(selected_tfs)
 
     for step, tf in enumerate(selected_tfs, start=1):
@@ -488,6 +497,15 @@ if st.button("▶  Run Scan", type="primary"):
                 else:
                     setup_type = "—"
 
+                combo_str, pattern = combo_map.get(ticker, ("—", ""))
+                score = compute_signal_score(
+                    sig["direction"],
+                    tfc_map.get(ticker, ""),
+                    vol_signal,
+                    tf,
+                    sig["signal"],
+                )
+
                 results.append(
                     {
                         "Ticker":      ticker,
@@ -498,6 +516,9 @@ if st.button("▶  Run Scan", type="primary"):
                         "Bar Type":    sig["bar_type"],
                         "FTFC":        ticker_ftfc,
                         "TFC Score":   tfc_map.get(ticker, ""),
+                        "Score":       score,
+                        "Combo":       combo_str,
+                        "Pattern":     pattern or "—",
                         "Vol Ratio":   vol_ratio,
                         "Vol Signal":  vol_signal,
                         "Date":        date_str,
@@ -561,6 +582,15 @@ if st.button("▶  Run Scan", type="primary"):
                 else:
                     setup_type = "—"
 
+                combo_str, pattern = combo_map.get(ticker, ("—", ""))
+                mtf_score = compute_signal_score(
+                    sig["direction"],
+                    tfc_map.get(ticker, ""),
+                    vol_signal,
+                    tf,
+                    sig["signal"],
+                )
+
                 mtf_context.append({
                     "Ticker":     ticker,
                     "Timeframe":  tf,
@@ -570,6 +600,9 @@ if st.button("▶  Run Scan", type="primary"):
                     "Bar Type":   sig["bar_type"],
                     "FTFC":       ticker_ftfc,
                     "TFC Score":  tfc_map.get(ticker, ""),
+                    "Score":      mtf_score,
+                    "Combo":      combo_str,
+                    "Pattern":    pattern or "—",
                     "Vol Ratio":  vol_ratio,
                     "Vol Signal": vol_signal,
                     "Date":       date_str,
@@ -588,6 +621,7 @@ if st.button("▶  Run Scan", type="primary"):
     st.session_state["mtf_context"] = mtf_context
     st.session_state["errors"]      = errors
     st.session_state["scan_time"]   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    st.session_state["combo_map"]   = combo_map
 
 # ---------------------------------------------------------------------------
 # Display results
@@ -599,6 +633,7 @@ results     = st.session_state["results"]
 mtf_context = st.session_state.get("mtf_context", [])
 errors      = st.session_state["errors"]
 scan_time   = st.session_state["scan_time"]
+combo_map   = st.session_state.get("combo_map", {})
 
 st.caption(f"Last scan: {scan_time}")
 
@@ -645,14 +680,15 @@ tf_order = {"Quarterly": 0, "Monthly": 1, "Weekly": 2, "2-Day": 3, "Daily": 4}
 df_res["_tf_sort"] = df_res["Timeframe"].map(tf_order)
 df_res = (
     df_res
-    .sort_values(["_tf_sort", "Sector", "Ticker"])
+    .sort_values(["Score", "_tf_sort", "Sector", "Ticker"], ascending=[False, True, True, True])
     .drop(columns=["_tf_sort"])
     .reset_index(drop=True)
 )
 
 # Reorder columns so Sector appears early
 col_order = ["Ticker", "Sector", "Timeframe", "Signal", "Direction", "Setup Type", "FTFC",
-             "TFC Score", "Vol Ratio", "Vol Signal", "Bar Type", "Date", "Open", "High",
+             "TFC Score", "Score", "Combo", "Pattern",
+             "Vol Ratio", "Vol Signal", "Bar Type", "Date", "Open", "High",
              "Low", "Close", "Prev High", "Prev Low", "HTF", "HTF High", "HTF Low"]
 df_res = df_res[[c for c in col_order if c in df_res.columns]]
 
@@ -708,7 +744,31 @@ def _style_setup_type(val: str) -> str:
     return "color: #888888"
 
 
-def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict) -> pd.DataFrame:
+def _style_score(val) -> str:
+    try:
+        v = int(val)
+    except (TypeError, ValueError):
+        return "color: #555555"
+    if v == 5:
+        return "color: #00c853; font-weight: 700"
+    if v >= 3:
+        return "color: #ffd600; font-weight: 600"
+    if v >= 1:
+        return "color: #aaaaaa"
+    return "color: #555555"
+
+
+def _style_pattern(val: str) -> str:
+    if val in {"1-2U", "3-2U"}:
+        return "color: #00c853; font-weight: 600"
+    if val in {"1-2D", "3-2D"}:
+        return "color: #ff1744; font-weight: 600"
+    if val == "1-1":
+        return "color: #ffd600; font-weight: 600"
+    return "color: #888888"
+
+
+def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict, combo_map: dict) -> pd.DataFrame:
     """
     Pivot flat scan results into one row per ticker, one column per timeframe.
     Each TF cell shows signal(s) prefixed with a direction emoji.
@@ -718,6 +778,12 @@ def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict) 
     TF_PRIORITY = {"Daily": 0, "2-Day": 1, "Weekly": 2, "Monthly": 3, "Quarterly": 4}
 
     mtf: dict[str, dict] = {}
+
+    # Pre-compute max score per ticker across all signal rows
+    max_score: dict[str, int] = {}
+    for r in results:
+        t = r["Ticker"]
+        max_score[t] = max(max_score.get(t, 0), r.get("Score", 0))
 
     for r in results:
         ticker = r["Ticker"]
@@ -751,11 +817,15 @@ def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict) 
     rows = []
     for ticker, row in mtf.items():
         tf_count = sum(1 for tf in scan_tfs if tf in row)
+        combo_str, pattern = combo_map.get(ticker, ("—", ""))
         out: dict = {
             "Ticker":    row["Ticker"],
             "Sector":    row["Sector"],
             "FTFC":      row["FTFC"],
             "TFC Score": row.get("TFC Score", ""),
+            "Score":     max_score.get(ticker, 0),
+            "Combo":     combo_str,
+            "Pattern":   pattern or "—",
         }
         for tf in scan_tfs:
             out[tf] = row.get(tf, "—")
@@ -788,6 +858,8 @@ styled = (
     .map(_style_tfc_score,   subset=["TFC Score"])
     .map(_style_vol_signal,  subset=["Vol Signal"])
     .map(_style_setup_type,  subset=["Setup Type"])
+    .map(_style_score,       subset=["Score"])
+    .map(_style_pattern,     subset=["Pattern"])
 )
 
 tab1, tab2 = st.tabs(["📋 Flat View", "🔀 MTF View"])
@@ -882,7 +954,7 @@ with tab2:
     tf_display_order = ["Daily", "2-Day", "Weekly", "Monthly", "Quarterly"]
     scan_tfs = [tf for tf in tf_display_order if any(r["Timeframe"] == tf for r in mtf_all)]
 
-    df_mtf = build_mtf_pivot(mtf_all, scan_tfs, _eff_map)
+    df_mtf = build_mtf_pivot(mtf_all, scan_tfs, _eff_map, combo_map)
 
     if df_mtf.empty:
         st.info("No MTF data to display.")
@@ -902,6 +974,8 @@ with tab2:
             df_mtf.style
             .map(_style_ftfc,       subset=["FTFC"])
             .map(_style_tfc_score,  subset=["TFC Score"])
+            .map(_style_score,      subset=["Score"])
+            .map(_style_pattern,    subset=["Pattern"])
             .map(_style_confluence, subset=["Confluence"])
         )
         st.dataframe(styled_mtf, use_container_width=True, hide_index=True, height=520)

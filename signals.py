@@ -304,3 +304,43 @@ def compute_volume_ratio(df: pd.DataFrame, lookback: int = 20) -> tuple[float, s
         label = "Low"
 
     return ratio, label
+
+
+def compute_signal_score(
+    sig_direction: str,
+    tfc_score: str,
+    vol_signal: str,
+    timeframe: str,
+    signal_name: str,
+) -> int:
+    """
+    Compute a 0–5 signal strength score for a single scan result row.
+
+    Factors:
+        +2  TFC numerator >= 4 AND TFC direction matches sig_direction
+        +1  vol_signal == "High"
+        +1  timeframe in {"Weekly", "Monthly"}
+        +1  signal_name in {"Shooter", "Hammer"}
+    """
+    score = 0
+
+    if tfc_score:
+        try:
+            parts = tfc_score.split()          # ["4/5", "Bullish"]
+            num = int(parts[0].split("/")[0])
+            tfc_dir = parts[1]
+            if num >= 4 and tfc_dir == sig_direction:
+                score += 2
+        except (IndexError, ValueError):
+            pass
+
+    if vol_signal == "High":
+        score += 1
+
+    if timeframe in {"Weekly", "Monthly"}:
+        score += 1
+
+    if signal_name in {"Shooter", "Hammer"}:
+        score += 1
+
+    return score
