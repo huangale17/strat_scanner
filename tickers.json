@@ -145,7 +145,9 @@
     "IONQ",
     "LITE",
     "COHR",
-    "TSEM"
+    "TSEM",
+    "BE",
+    "TSLA"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -170,6 +172,8 @@
     "IONQ": "Other",
     "LITE": "Other",
     "COHR": "Other",
-    "TSEM": "Other"
+    "TSEM": "Other",
+    "BE": "Other",
+    "TSLA": "Consumer Discretionary"
   }
 }
