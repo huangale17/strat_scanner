@@ -231,58 +231,45 @@ def _fetch_one(ticker: str, timeframe: str) -> tuple[str, pd.DataFrame | None]:
 # FTFC (Full Timeframe Continuity)
 # ---------------------------------------------------------------------------
 
-def compute_ftfc(daily_df: pd.DataFrame) -> str:
+def compute_ftfc(
+    daily_df: pd.DataFrame | None,
+    weekly_df: pd.DataFrame | None,
+    monthly_df: pd.DataFrame | None,
+) -> str:
     """
-    Compute Full Timeframe Continuity status from a daily OHLCV DataFrame.
+    Compute Full Timeframe Continuity using #theStrat bar classification.
 
-    Bullish FTFC : current close > quarterly open AND monthly open AND weekly open
-    Bearish FTFC : current close < quarterly open AND monthly open AND weekly open
+    A timeframe is considered bullish if its most recent *closed* bar is a
+    2U bar (broke prior high, did not break prior low), and bearish if it is
+    a 2D bar (broke prior low, did not break prior high).
 
-    'Opening price' for each period = Open of the first actual trading day
-    in that period (automatically handles weekends/holidays since we use
-    real yfinance data — no hardcoded calendars needed).
+    Full Bullish FTFC: Monthly, Weekly, and Daily are all 2U.
+    Full Bearish FTFC: Monthly, Weekly, and Daily are all 2D.
 
-    Returns 'Bullish', 'Bearish', or '' (no FTFC / partial alignment).
+    Any missing DataFrame (None or <2 bars) causes the function to return "".
     """
-    if daily_df is None or daily_df.empty or len(daily_df) < 5:
-        return ""
+    from signals import classify_bar
 
-    today = date.today()
-    current_close = float(daily_df["Close"].iloc[-1])
-
-    # Convert tz-aware DatetimeIndex to plain date objects
-    bar_dates = np.array(
-        [idx.date() if hasattr(idx, "date") else idx for idx in daily_df.index]
-    )
-    opens = daily_df["Open"].values
-
-    def first_open_on_or_after(start: date) -> float | None:
-        """Return the Open of the first trading bar on or after `start`."""
-        mask = bar_dates >= start
-        if not mask.any():
+    def _last_type(df: pd.DataFrame | None) -> str | None:
+        if df is None or len(df) < 2:
             return None
-        return float(opens[mask][0])
+        last = df.iloc[-1]
+        prev = df.iloc[-2]
+        return classify_bar(
+            float(last["High"]), float(last["Low"]),
+            float(prev["High"]), float(prev["Low"]),
+        )
 
-    # --- Quarter start: first calendar day of current quarter ---
-    q_month = ((today.month - 1) // 3) * 3 + 1   # 1, 4, 7, or 10
-    q_start = date(today.year, q_month, 1)
+    d = _last_type(daily_df)
+    w = _last_type(weekly_df)
+    m = _last_type(monthly_df)
 
-    # --- Month start: first calendar day of current month ---
-    m_start = date(today.year, today.month, 1)
-
-    # --- Week start: Monday of the current (or most recent) week ---
-    w_start = today - timedelta(days=today.weekday())
-
-    q_open = first_open_on_or_after(q_start)
-    m_open = first_open_on_or_after(m_start)
-    w_open = first_open_on_or_after(w_start)
-
-    if q_open is None or m_open is None or w_open is None:
+    if d is None or w is None or m is None:
         return ""
 
-    if current_close > q_open and current_close > m_open and current_close > w_open:
+    if d == "2U" and w == "2U" and m == "2U":
         return "Bullish"
-    if current_close < q_open and current_close < m_open and current_close < w_open:
+    if d == "2D" and w == "2D" and m == "2D":
         return "Bearish"
     return ""
 
@@ -304,3 +291,58 @@ def fetch_batch(tickers: list[str], timeframe: str, max_workers: int = 12) -> di
             ticker, df = future.result()
             results[ticker] = df
     return results
+
+
+# ---------------------------------------------------------------------------
+# TFC Score (graded Timeframe Continuity)
+# ---------------------------------------------------------------------------
+
+def compute_tfc_score(
+    daily_df: pd.DataFrame | None,
+    weekly_df: pd.DataFrame | None,
+    monthly_df: pd.DataFrame | None,
+    quarterly_df: pd.DataFrame | None = None,
+    tf_2day_df: pd.DataFrame | None = None,
+) -> str:
+    """
+    Compute a graded Timeframe Continuity score across up to 5 timeframes.
+
+    For each non-None DataFrame with at least 2 bars, classify the last bar
+    using classify_bar. Count how many are 2U (bullish) and 2D (bearish).
+
+    Returns:
+        "{bullish}/{total} Bullish"  if bullish > bearish
+        "{bearish}/{total} Bearish"  if bearish > bullish
+        "{bullish}/{total} Mixed"    if tied (includes all-1 / all-3 cases)
+        ""                           if fewer than 2 TFs have usable data
+    """
+    from signals import classify_bar
+
+    dfs = [daily_df, weekly_df, monthly_df, quarterly_df, tf_2day_df]
+
+    bullish = 0
+    bearish = 0
+    total = 0
+    for df in dfs:
+        if df is None or len(df) < 2:
+            continue
+        total += 1
+        last = df.iloc[-1]
+        prev = df.iloc[-2]
+        bar_type = classify_bar(
+            float(last["High"]), float(last["Low"]),
+            float(prev["High"]), float(prev["Low"]),
+        )
+        if bar_type == "2U":
+            bullish += 1
+        elif bar_type == "2D":
+            bearish += 1
+
+    if total < 2:
+        return ""
+
+    if bullish > bearish:
+        return f"{bullish}/{total} Bullish"
+    if bearish > bullish:
+        return f"{bearish}/{total} Bearish"
+    return f"{bullish}/{total} Mixed"

@@ -15,8 +15,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 import yfinance as yf
 
-from data_fetcher import compute_ftfc, fetch_batch
-from signals import classify_bar, scan_dataframe
+from data_fetcher import compute_ftfc, compute_tfc_score, fetch_batch
+from signals import classify_bar, compute_volume_ratio, scan_dataframe
 
 # ---------------------------------------------------------------------------
 # Page config
@@ -379,10 +379,11 @@ if st.button("▶  Run Scan", type="primary"):
 
     # Always fetch daily data first — needed for FTFC regardless of selected timeframes
     daily_batch = fetch_batch(ticker_list, "Daily")
-    ftfc_map    = {ticker: compute_ftfc(df) for ticker, df in daily_batch.items()}
 
-    # Pre-fetch all needed batches (selected TFs + two levels of HTFs for MTF context)
-    tfs_to_fetch: set[str] = set(selected_tfs)
+    # Pre-fetch all needed batches (selected TFs + two levels of HTFs for MTF context).
+    # Weekly and Monthly are ALWAYS fetched — required for true FTFC classification
+    # even if the user didn't select those timeframes for scanning.
+    tfs_to_fetch: set[str] = set(selected_tfs) | {"Weekly", "Monthly"}
     for tf in selected_tfs:
         htf1 = HTF_MAP.get(tf)
         if htf1:
@@ -397,6 +398,32 @@ if st.button("▶  Run Scan", type="primary"):
     for i, tf in enumerate(fetch_list, start=1):
         progress.progress(0.1 * i / max(len(fetch_list), 1), text=f"Fetching **{tf}** data…")
         tf_batches[tf] = fetch_batch(ticker_list, tf)
+
+    # Now that Daily, Weekly, Monthly batches are all in memory, compute true FTFC.
+    weekly_batch  = tf_batches.get("Weekly", {})
+    monthly_batch = tf_batches.get("Monthly", {})
+    ftfc_map = {
+        ticker: compute_ftfc(
+            daily_batch.get(ticker),
+            weekly_batch.get(ticker),
+            monthly_batch.get(ticker),
+        )
+        for ticker in ticker_list
+    }
+
+    # TFC Score — graded alignment across up to 5 timeframes (uses any batches we have).
+    quarterly_batch = tf_batches.get("Quarterly", {})
+    twoday_batch    = tf_batches.get("2-Day", {})
+    tfc_map = {
+        ticker: compute_tfc_score(
+            daily_batch.get(ticker),
+            weekly_batch.get(ticker),
+            monthly_batch.get(ticker),
+            quarterly_batch.get(ticker),
+            twoday_batch.get(ticker),
+        )
+        for ticker in ticker_list
+    }
 
     total_steps = len(selected_tfs)
 
@@ -425,6 +452,8 @@ if st.button("▶  Run Scan", type="primary"):
             except Exception as exc:
                 errors.append(f"{ticker} ({tf}): {exc}")
                 continue
+
+            vol_ratio, vol_signal = compute_volume_ratio(df)
 
             # Higher timeframe targets for this ticker
             htf_high = htf_low = None
@@ -468,6 +497,9 @@ if st.button("▶  Run Scan", type="primary"):
                         "Setup Type":  setup_type,
                         "Bar Type":    sig["bar_type"],
                         "FTFC":        ticker_ftfc,
+                        "TFC Score":   tfc_map.get(ticker, ""),
+                        "Vol Ratio":   vol_ratio,
+                        "Vol Signal":  vol_signal,
                         "Date":        date_str,
                         "Open":        round(float(last["Open"]),  2),
                         "High":        round(float(last["High"]),  2),
@@ -505,6 +537,8 @@ if st.button("▶  Run Scan", type="primary"):
             except Exception:
                 continue
 
+            vol_ratio, vol_signal = compute_volume_ratio(df)
+
             htf_high = htf_low = None
             htf_df = htf_batch.get(ticker)
             if htf_df is not None and len(htf_df) >= 1:
@@ -535,6 +569,9 @@ if st.button("▶  Run Scan", type="primary"):
                     "Setup Type": setup_type,
                     "Bar Type":   sig["bar_type"],
                     "FTFC":       ticker_ftfc,
+                    "TFC Score":  tfc_map.get(ticker, ""),
+                    "Vol Ratio":  vol_ratio,
+                    "Vol Signal": vol_signal,
                     "Date":       date_str,
                     "Open":       round(float(last["Open"]),  2),
                     "High":       round(float(last["High"]),  2),
@@ -615,8 +652,8 @@ df_res = (
 
 # Reorder columns so Sector appears early
 col_order = ["Ticker", "Sector", "Timeframe", "Signal", "Direction", "Setup Type", "FTFC",
-             "Bar Type", "Date", "Open", "High", "Low", "Close", "Prev High", "Prev Low",
-             "HTF", "HTF High", "HTF Low"]
+             "TFC Score", "Vol Ratio", "Vol Signal", "Bar Type", "Date", "Open", "High",
+             "Low", "Close", "Prev High", "Prev Low", "HTF", "HTF High", "HTF Low"]
 df_res = df_res[[c for c in col_order if c in df_res.columns]]
 
 # -- Styling --
@@ -643,6 +680,26 @@ def _style_ftfc(val: str) -> str:
         return "color: #ff1744; font-weight: 600"
     return "color: #888888"
 
+def _style_tfc_score(val: str) -> str:
+    if not isinstance(val, str) or not val:
+        return "color: #888888"
+    if val.endswith("Bullish"):
+        return "color: #00c853; font-weight: 600"
+    if val.endswith("Bearish"):
+        return "color: #ff1744; font-weight: 600"
+    if val.endswith("Mixed"):
+        return "color: #ffd600; font-weight: 600"
+    return "color: #888888"
+
+def _style_vol_signal(val: str) -> str:
+    if val == "High":
+        return "color: #00c853; font-weight: 600"
+    if val == "Low":
+        return "color: #ff1744; font-weight: 600"
+    if val == "Normal":
+        return "color: #888888"
+    return "color: #555555"  # N/A
+
 def _style_setup_type(val: str) -> str:
     if val == "Continuation":
         return "color: #00c853; font-weight: 600"
@@ -668,10 +725,11 @@ def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict) 
 
         if ticker not in mtf:
             mtf[ticker] = {
-                "Ticker":   ticker,
-                "Sector":   sector_map.get(ticker, "Other"),
-                "FTFC":     r["FTFC"],
-                "_htf_pri": 99,
+                "Ticker":    ticker,
+                "Sector":    sector_map.get(ticker, "Other"),
+                "FTFC":      r["FTFC"],
+                "TFC Score": r.get("TFC Score", ""),
+                "_htf_pri":  99,
             }
 
         # Format signal cell: emoji + signal name; join multiples with separator
@@ -694,9 +752,10 @@ def build_mtf_pivot(results: list[dict], scan_tfs: list[str], sector_map: dict) 
     for ticker, row in mtf.items():
         tf_count = sum(1 for tf in scan_tfs if tf in row)
         out: dict = {
-            "Ticker": row["Ticker"],
-            "Sector": row["Sector"],
-            "FTFC":   row["FTFC"],
+            "Ticker":    row["Ticker"],
+            "Sector":    row["Sector"],
+            "FTFC":      row["FTFC"],
+            "TFC Score": row.get("TFC Score", ""),
         }
         for tf in scan_tfs:
             out[tf] = row.get(tf, "—")
@@ -726,6 +785,8 @@ styled = (
     .map(_style_direction,   subset=["Direction"])
     .map(_style_signal,      subset=["Signal"])
     .map(_style_ftfc,        subset=["FTFC"])
+    .map(_style_tfc_score,   subset=["TFC Score"])
+    .map(_style_vol_signal,  subset=["Vol Signal"])
     .map(_style_setup_type,  subset=["Setup Type"])
 )
 
@@ -840,6 +901,7 @@ with tab2:
         styled_mtf = (
             df_mtf.style
             .map(_style_ftfc,       subset=["FTFC"])
+            .map(_style_tfc_score,  subset=["TFC Score"])
             .map(_style_confluence, subset=["Confluence"])
         )
         st.dataframe(styled_mtf, use_container_width=True, hide_index=True, height=520)

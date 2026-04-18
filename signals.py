@@ -261,3 +261,46 @@ def scan_dataframe(df: pd.DataFrame) -> list[dict]:
         signals.append({"signal": "2D Green", "bar_type": "2D", "direction": "Bullish"})
 
     return signals
+
+
+def compute_volume_ratio(df: pd.DataFrame, lookback: int = 20) -> tuple[float, str]:
+    """
+    Compute the volume ratio of the last bar vs the mean of prior bars.
+
+    Ratio = last_bar_volume / mean(up to `lookback` prior bars' volume).
+    The last bar is excluded from the mean to avoid self-reference.
+
+    Label thresholds:
+        ratio >= 1.5          -> "High"
+        0.5 <= ratio < 1.5    -> "Normal"
+        0  <  ratio < 0.5     -> "Low"
+        otherwise (no data)   -> "N/A" with ratio 0.0
+
+    Returns (ratio_rounded_to_2dp, label).
+    """
+    if df is None or "Volume" not in df.columns or len(df) < 2:
+        return 0.0, "N/A"
+
+    # Prior bars: everything before the last, capped at `lookback`.
+    prior = df["Volume"].iloc[-(lookback + 1):-1]
+    if len(prior) == 0:
+        return 0.0, "N/A"
+
+    prior_mean = float(prior.mean())
+    if prior_mean <= 0:
+        return 0.0, "N/A"
+
+    last_vol = float(df["Volume"].iloc[-1])
+    if last_vol <= 0:
+        return 0.0, "N/A"
+
+    ratio = round(last_vol / prior_mean, 2)
+
+    if ratio >= 1.5:
+        label = "High"
+    elif ratio >= 0.5:
+        label = "Normal"
+    else:
+        label = "Low"
+
+    return ratio, label
