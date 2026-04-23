@@ -158,7 +158,8 @@
     "MP",
     "USAR",
     "URA",
-    "CCJ"
+    "CCJ",
+    "UUUU"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -196,6 +197,7 @@
     "MP": "Other",
     "USAR": "Other",
     "URA": "Other",
-    "CCJ": "Other"
+    "CCJ": "Other",
+    "UUUU": "Other"
   }
 }
