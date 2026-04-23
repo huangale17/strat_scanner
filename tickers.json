@@ -157,7 +157,8 @@
     "AAOI",
     "MP",
     "USAR",
-    "URA"
+    "URA",
+    "CCJ"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -194,6 +195,7 @@
     "AAOI": "Other",
     "MP": "Other",
     "USAR": "Other",
-    "URA": "Other"
+    "URA": "Other",
+    "CCJ": "Other"
   }
 }
