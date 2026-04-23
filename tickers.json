@@ -160,7 +160,8 @@
     "URA",
     "CCJ",
     "UUUU",
-    "RKLB"
+    "RKLB",
+    "IBM"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -200,6 +201,7 @@
     "URA": "Other",
     "CCJ": "Other",
     "UUUU": "Other",
-    "RKLB": "Other"
+    "RKLB": "Other",
+    "IBM": "Other"
   }
 }
