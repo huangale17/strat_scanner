@@ -154,7 +154,8 @@
     "CEG",
     "ALAB",
     "ALB",
-    "AAOI"
+    "AAOI",
+    "MP"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -188,6 +189,7 @@
     "CEG": "Other",
     "ALAB": "Other",
     "ALB": "Other",
-    "AAOI": "Other"
+    "AAOI": "Other",
+    "MP": "Other"
   }
 }
