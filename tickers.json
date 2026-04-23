@@ -150,7 +150,8 @@
     "TSLA",
     "OKLO",
     "SMR",
-    "VST"
+    "VST",
+    "CEG"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -180,6 +181,7 @@
     "TSLA": "Consumer Discretionary",
     "OKLO": "Other",
     "SMR": "Other",
-    "VST": "Other"
+    "VST": "Other",
+    "CEG": "Other"
   }
 }
