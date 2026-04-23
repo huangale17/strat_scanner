@@ -147,7 +147,8 @@
     "COHR",
     "TSEM",
     "BE",
-    "TSLA"
+    "TSLA",
+    "OKLO"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -174,6 +175,7 @@
     "COHR": "Other",
     "TSEM": "Other",
     "BE": "Other",
-    "TSLA": "Consumer Discretionary"
+    "TSLA": "Consumer Discretionary",
+    "OKLO": "Other"
   }
 }
