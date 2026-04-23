@@ -153,7 +153,8 @@
     "VST",
     "CEG",
     "ALAB",
-    "ALB"
+    "ALB",
+    "AAOI"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -186,6 +187,7 @@
     "VST": "Other",
     "CEG": "Other",
     "ALAB": "Other",
-    "ALB": "Other"
+    "ALB": "Other",
+    "AAOI": "Other"
   }
 }
