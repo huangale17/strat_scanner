@@ -148,7 +148,8 @@
     "TSEM",
     "BE",
     "TSLA",
-    "OKLO"
+    "OKLO",
+    "SMR"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -176,6 +177,7 @@
     "TSEM": "Other",
     "BE": "Other",
     "TSLA": "Consumer Discretionary",
-    "OKLO": "Other"
+    "OKLO": "Other",
+    "SMR": "Other"
   }
 }
