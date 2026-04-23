@@ -151,7 +151,8 @@
     "OKLO",
     "SMR",
     "VST",
-    "CEG"
+    "CEG",
+    "ALAB"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -182,6 +183,7 @@
     "OKLO": "Other",
     "SMR": "Other",
     "VST": "Other",
-    "CEG": "Other"
+    "CEG": "Other",
+    "ALAB": "Other"
   }
 }
