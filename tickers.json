@@ -155,7 +155,8 @@
     "ALAB",
     "ALB",
     "AAOI",
-    "MP"
+    "MP",
+    "USAR"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -190,6 +191,7 @@
     "ALAB": "Other",
     "ALB": "Other",
     "AAOI": "Other",
-    "MP": "Other"
+    "MP": "Other",
+    "USAR": "Other"
   }
 }
