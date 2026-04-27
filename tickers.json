@@ -161,7 +161,8 @@
     "CCJ",
     "UUUU",
     "RKLB",
-    "IBM"
+    "IBM",
+    "TLN"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -203,6 +204,7 @@
     "UUUU": "Other",
     "RKLB": "Other",
     "IBM": "Other",
-    "TALN": "Other"
+    "TALN": "Other",
+    "TLN": "Other"
   }
 }
