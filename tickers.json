@@ -163,7 +163,8 @@
     "RKLB",
     "IBM",
     "TLN",
-    "FCEL"
+    "FCEL",
+    "BBAI"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -207,6 +208,7 @@
     "IBM": "Other",
     "TALN": "Other",
     "TLN": "Other",
-    "FCEL": "Industrials"
+    "FCEL": "Industrials",
+    "BBAI": "Technology"
   }
 }
