@@ -162,7 +162,8 @@
     "UUUU",
     "RKLB",
     "IBM",
-    "TLN"
+    "TLN",
+    "FCEL"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -205,6 +206,7 @@
     "RKLB": "Other",
     "IBM": "Other",
     "TALN": "Other",
-    "TLN": "Other"
+    "TLN": "Other",
+    "FCEL": "Industrials"
   }
 }
