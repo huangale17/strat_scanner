@@ -167,7 +167,8 @@
     "BBAI",
     "ATZ.TO",
     "POW.TO",
-    "VLO"
+    "VLO",
+    "PSX"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -215,6 +216,7 @@
     "BBAI": "Technology",
     "ATZ.TO": "Other",
     "POW.TO": "Other",
-    "VLO": "Energy"
+    "VLO": "Energy",
+    "PSX": "Energy"
   }
 }
