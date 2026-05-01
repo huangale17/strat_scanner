@@ -166,7 +166,8 @@
     "FCEL",
     "BBAI",
     "ATZ.TO",
-    "POW.TO"
+    "POW.TO",
+    "VLO"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -213,6 +214,7 @@
     "FCEL": "Industrials",
     "BBAI": "Technology",
     "ATZ.TO": "Other",
-    "POW.TO": "Other"
+    "POW.TO": "Other",
+    "VLO": "Energy"
   }
 }
