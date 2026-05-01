@@ -168,7 +168,8 @@
     "ATZ.TO",
     "POW.TO",
     "VLO",
-    "PSX"
+    "PSX",
+    "MPC"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -217,6 +218,7 @@
     "ATZ.TO": "Other",
     "POW.TO": "Other",
     "VLO": "Energy",
-    "PSX": "Energy"
+    "PSX": "Energy",
+    "MPC": "Energy"
   }
 }
