@@ -165,7 +165,8 @@
     "TLN",
     "FCEL",
     "BBAI",
-    "ATZ.TO"
+    "ATZ.TO",
+    "POW.TO"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -211,6 +212,7 @@
     "TLN": "Other",
     "FCEL": "Industrials",
     "BBAI": "Technology",
-    "ATZ.TO": "Other"
+    "ATZ.TO": "Other",
+    "POW.TO": "Other"
   }
 }
