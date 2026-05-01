@@ -170,7 +170,8 @@
     "VLO",
     "PSX",
     "MPC",
-    "HUT"
+    "HUT",
+    "DOCN"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -221,6 +222,7 @@
     "VLO": "Energy",
     "PSX": "Energy",
     "MPC": "Energy",
-    "HUT": "Financials"
+    "HUT": "Financials",
+    "DOCN": "Technology"
   }
 }
