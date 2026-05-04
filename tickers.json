@@ -173,7 +173,8 @@
     "HUT",
     "DOCN",
     "WDC",
-    "RGTI"
+    "RGTI",
+    "QUBT"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -227,6 +228,7 @@
     "HUT": "Financials",
     "DOCN": "Technology",
     "WDC": "Technology",
-    "RGTI": "Technology"
+    "RGTI": "Technology",
+    "QUBT": "Technology"
   }
 }
