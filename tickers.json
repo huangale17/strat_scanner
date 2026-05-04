@@ -172,7 +172,8 @@
     "MPC",
     "HUT",
     "DOCN",
-    "WDC"
+    "WDC",
+    "RGTI"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -225,6 +226,7 @@
     "MPC": "Energy",
     "HUT": "Financials",
     "DOCN": "Technology",
-    "WDC": "Technology"
+    "WDC": "Technology",
+    "RGTI": "Technology"
   }
 }
