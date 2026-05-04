@@ -171,7 +171,8 @@
     "PSX",
     "MPC",
     "HUT",
-    "DOCN"
+    "DOCN",
+    "WDC"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -223,6 +224,7 @@
     "PSX": "Energy",
     "MPC": "Energy",
     "HUT": "Financials",
-    "DOCN": "Technology"
+    "DOCN": "Technology",
+    "WDC": "Technology"
   }
 }
