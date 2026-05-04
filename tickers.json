@@ -176,7 +176,8 @@
     "RGTI",
     "QUBT",
     "XNDU",
-    "XE"
+    "XE",
+    "QBTS"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -233,6 +234,7 @@
     "RGTI": "Technology",
     "QUBT": "Technology",
     "XNDU": "Technology",
-    "XE": "Industrials"
+    "XE": "Industrials",
+    "QBTS": "Technology"
   }
 }
