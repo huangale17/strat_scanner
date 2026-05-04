@@ -174,7 +174,8 @@
     "DOCN",
     "WDC",
     "RGTI",
-    "QUBT"
+    "QUBT",
+    "XNDU"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -229,6 +230,7 @@
     "DOCN": "Technology",
     "WDC": "Technology",
     "RGTI": "Technology",
-    "QUBT": "Technology"
+    "QUBT": "Technology",
+    "XNDU": "Technology"
   }
 }
