@@ -179,7 +179,8 @@
     "XE",
     "QBTS",
     "AKAM",
-    "NET"
+    "NET",
+    "FSLY"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -239,6 +240,7 @@
     "XE": "Industrials",
     "QBTS": "Technology",
     "AKAM": "Other",
-    "NET": "Other"
+    "NET": "Other",
+    "FSLY": "Other"
   }
 }
