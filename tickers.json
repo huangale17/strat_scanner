@@ -178,7 +178,8 @@
     "XNDU",
     "XE",
     "QBTS",
-    "AKAM"
+    "AKAM",
+    "NET"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -237,6 +238,7 @@
     "XNDU": "Technology",
     "XE": "Industrials",
     "QBTS": "Technology",
-    "AKAM": "Other"
+    "AKAM": "Other",
+    "NET": "Other"
   }
 }
