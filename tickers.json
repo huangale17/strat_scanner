@@ -180,7 +180,8 @@
     "QBTS",
     "AKAM",
     "NET",
-    "FSLY"
+    "FSLY",
+    "GLW"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -241,6 +242,7 @@
     "QBTS": "Technology",
     "AKAM": "Other",
     "NET": "Other",
-    "FSLY": "Other"
+    "FSLY": "Other",
+    "GLW": "Other"
   }
 }
