@@ -186,7 +186,8 @@
     "AMKR",
     "CIEN",
     "SNPS",
-    "VRT"
+    "VRT",
+    "CLS"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -253,6 +254,7 @@
     "AMKR": "Other",
     "CIEN": "Other",
     "SNPS": "Other",
-    "VRT": "Other"
+    "VRT": "Other",
+    "CLS": "Other"
   }
 }
