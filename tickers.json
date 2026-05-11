@@ -196,7 +196,8 @@
     "NOK",
     "TXN",
     "CIFR",
-    "WULF"
+    "WULF",
+    "NVTS"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -273,6 +274,7 @@
     "NOK": "Other",
     "TXN": "Other",
     "CIFR": "Other",
-    "WULF": "Financials"
+    "WULF": "Financials",
+    "NVTS": "Technology"
   }
 }
