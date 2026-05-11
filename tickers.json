@@ -188,7 +188,8 @@
     "SNPS",
     "VRT",
     "CLS",
-    "MRNA"
+    "MRNA",
+    "GEV"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -257,6 +258,7 @@
     "SNPS": "Other",
     "VRT": "Other",
     "CLS": "Other",
-    "MRNA": "Other"
+    "MRNA": "Other",
+    "GEV": "Other"
   }
 }
