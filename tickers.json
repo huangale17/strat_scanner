@@ -190,7 +190,8 @@
     "CLS",
     "MRNA",
     "GEV",
-    "FTNT"
+    "FTNT",
+    "FIX"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -261,6 +262,7 @@
     "CLS": "Other",
     "MRNA": "Other",
     "GEV": "Other",
-    "FTNT": "Other"
+    "FTNT": "Other",
+    "FIX": "Other"
   }
 }
