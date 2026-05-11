@@ -183,7 +183,8 @@
     "FSLY",
     "GLW",
     "KLAC",
-    "AMKR"
+    "AMKR",
+    "CIEN"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -247,6 +248,7 @@
     "FSLY": "Other",
     "GLW": "Other",
     "KLAC": "Other",
-    "AMKR": "Other"
+    "AMKR": "Other",
+    "CIEN": "Other"
   }
 }
