@@ -199,7 +199,8 @@
     "WULF",
     "NVTS",
     "LEU",
-    "EOSE"
+    "EOSE",
+    "ETN"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -279,6 +280,7 @@
     "WULF": "Financials",
     "NVTS": "Technology",
     "LEU": "Energy",
-    "EOSE": "Industrials"
+    "EOSE": "Industrials",
+    "ETN": "Industrials"
   }
 }
