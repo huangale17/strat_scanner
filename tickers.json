@@ -185,7 +185,8 @@
     "KLAC",
     "AMKR",
     "CIEN",
-    "SNPS"
+    "SNPS",
+    "VRT"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -251,6 +252,7 @@
     "KLAC": "Other",
     "AMKR": "Other",
     "CIEN": "Other",
-    "SNPS": "Other"
+    "SNPS": "Other",
+    "VRT": "Other"
   }
 }
