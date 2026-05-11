@@ -198,7 +198,8 @@
     "CIFR",
     "WULF",
     "NVTS",
-    "LEU"
+    "LEU",
+    "EOSE"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -277,6 +278,7 @@
     "CIFR": "Other",
     "WULF": "Financials",
     "NVTS": "Technology",
-    "LEU": "Energy"
+    "LEU": "Energy",
+    "EOSE": "Industrials"
   }
 }
