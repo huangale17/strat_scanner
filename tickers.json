@@ -197,7 +197,8 @@
     "TXN",
     "CIFR",
     "WULF",
-    "NVTS"
+    "NVTS",
+    "LEU"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -275,6 +276,7 @@
     "TXN": "Other",
     "CIFR": "Other",
     "WULF": "Financials",
-    "NVTS": "Technology"
+    "NVTS": "Technology",
+    "LEU": "Energy"
   }
 }
