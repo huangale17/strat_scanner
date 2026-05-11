@@ -189,7 +189,8 @@
     "VRT",
     "CLS",
     "MRNA",
-    "GEV"
+    "GEV",
+    "FTNT"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -259,6 +260,7 @@
     "VRT": "Other",
     "CLS": "Other",
     "MRNA": "Other",
-    "GEV": "Other"
+    "GEV": "Other",
+    "FTNT": "Other"
   }
 }
