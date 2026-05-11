@@ -194,7 +194,8 @@
     "FIX",
     "HPE",
     "NOK",
-    "TXN"
+    "TXN",
+    "CIFR"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -269,6 +270,7 @@
     "FIX": "Other",
     "HPE": "Other",
     "NOK": "Other",
-    "TXN": "Other"
+    "TXN": "Other",
+    "CIFR": "Other"
   }
 }
