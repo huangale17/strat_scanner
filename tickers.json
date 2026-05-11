@@ -201,7 +201,8 @@
     "LEU",
     "EOSE",
     "ETN",
-    "RMBS"
+    "RMBS",
+    "CRDO"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -283,6 +284,7 @@
     "LEU": "Energy",
     "EOSE": "Industrials",
     "ETN": "Industrials",
-    "RMBS": "Technology"
+    "RMBS": "Technology",
+    "CRDO": "Technology"
   }
 }
