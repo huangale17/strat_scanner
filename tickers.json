@@ -200,7 +200,8 @@
     "NVTS",
     "LEU",
     "EOSE",
-    "ETN"
+    "ETN",
+    "RMBS"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -281,6 +282,7 @@
     "NVTS": "Technology",
     "LEU": "Energy",
     "EOSE": "Industrials",
-    "ETN": "Industrials"
+    "ETN": "Industrials",
+    "RMBS": "Technology"
   }
 }
