@@ -192,7 +192,8 @@
     "GEV",
     "FTNT",
     "FIX",
-    "HPE"
+    "HPE",
+    "NOK"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -265,6 +266,7 @@
     "GEV": "Other",
     "FTNT": "Other",
     "FIX": "Other",
-    "HPE": "Other"
+    "HPE": "Other",
+    "NOK": "Other"
   }
 }
