@@ -195,7 +195,8 @@
     "HPE",
     "NOK",
     "TXN",
-    "CIFR"
+    "CIFR",
+    "WULF"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -271,6 +272,7 @@
     "HPE": "Other",
     "NOK": "Other",
     "TXN": "Other",
-    "CIFR": "Other"
+    "CIFR": "Other",
+    "WULF": "Financials"
   }
 }
