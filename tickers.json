@@ -208,7 +208,8 @@
     "POWL",
     "MOD",
     "CARR",
-    "APLD"
+    "APLD",
+    "MLI"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -297,6 +298,7 @@
     "POWL": "Industrials",
     "MOD": "Consumer Discretionary",
     "CARR": "Industrials",
-    "APLD": "Technology"
+    "APLD": "Technology",
+    "MLI": "Industrials"
   }
 }
