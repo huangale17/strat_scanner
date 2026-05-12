@@ -204,7 +204,8 @@
     "RMBS",
     "CRDO",
     "TER",
-    "PWR"
+    "PWR",
+    "POWL"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -289,6 +290,7 @@
     "RMBS": "Technology",
     "CRDO": "Technology",
     "TER": "Technology",
-    "PWR": "Other"
+    "PWR": "Other",
+    "POWL": "Industrials"
   }
 }
