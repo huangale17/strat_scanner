@@ -205,7 +205,8 @@
     "CRDO",
     "TER",
     "PWR",
-    "POWL"
+    "POWL",
+    "MOD"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -291,6 +292,7 @@
     "CRDO": "Technology",
     "TER": "Technology",
     "PWR": "Other",
-    "POWL": "Industrials"
+    "POWL": "Industrials",
+    "MOD": "Consumer Discretionary"
   }
 }
