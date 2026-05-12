@@ -213,7 +213,8 @@
     "AFRM",
     "UPST",
     "W",
-    "ETSY"
+    "ETSY",
+    "IESC"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -307,6 +308,7 @@
     "AFRM": "Financials",
     "UPST": "Financials",
     "W": "Consumer Discretionary",
-    "ETSY": "Consumer Discretionary"
+    "ETSY": "Consumer Discretionary",
+    "IESC": "Industrials"
   }
 }
