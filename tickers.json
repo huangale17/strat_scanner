@@ -212,7 +212,8 @@
     "MLI",
     "AFRM",
     "UPST",
-    "W"
+    "W",
+    "ETSY"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -305,6 +306,7 @@
     "MLI": "Industrials",
     "AFRM": "Financials",
     "UPST": "Financials",
-    "W": "Consumer Discretionary"
+    "W": "Consumer Discretionary",
+    "ETSY": "Consumer Discretionary"
   }
 }
