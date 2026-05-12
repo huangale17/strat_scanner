@@ -214,7 +214,8 @@
     "UPST",
     "W",
     "ETSY",
-    "IESC"
+    "IESC",
+    "GME"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -309,6 +310,7 @@
     "UPST": "Financials",
     "W": "Consumer Discretionary",
     "ETSY": "Consumer Discretionary",
-    "IESC": "Industrials"
+    "IESC": "Industrials",
+    "GME": "Consumer Discretionary"
   }
 }
