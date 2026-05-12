@@ -211,7 +211,8 @@
     "APLD",
     "MLI",
     "AFRM",
-    "UPST"
+    "UPST",
+    "W"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -303,6 +304,7 @@
     "APLD": "Technology",
     "MLI": "Industrials",
     "AFRM": "Financials",
-    "UPST": "Financials"
+    "UPST": "Financials",
+    "W": "Consumer Discretionary"
   }
 }
