@@ -210,7 +210,8 @@
     "CARR",
     "APLD",
     "MLI",
-    "AFRM"
+    "AFRM",
+    "UPST"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -301,6 +302,7 @@
     "CARR": "Industrials",
     "APLD": "Technology",
     "MLI": "Industrials",
-    "AFRM": "Financials"
+    "AFRM": "Financials",
+    "UPST": "Financials"
   }
 }
