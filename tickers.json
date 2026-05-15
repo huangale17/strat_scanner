@@ -218,7 +218,8 @@
     "GME",
     "LUNR",
     "ENPH",
-    "SEDG"
+    "SEDG",
+    "TAN"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -317,6 +318,7 @@
     "GME": "Consumer Discretionary",
     "LUNR": "Industrials",
     "ENPH": "Technology",
-    "SEDG": "Technology"
+    "SEDG": "Technology",
+    "TAN": "Other"
   }
 }
