@@ -219,7 +219,8 @@
     "LUNR",
     "ENPH",
     "SEDG",
-    "TAN"
+    "TAN",
+    "FIG"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -319,6 +320,7 @@
     "LUNR": "Industrials",
     "ENPH": "Technology",
     "SEDG": "Technology",
-    "TAN": "Other"
+    "TAN": "Other",
+    "FIG": "Technology"
   }
 }
