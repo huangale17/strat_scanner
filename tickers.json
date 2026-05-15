@@ -215,7 +215,8 @@
     "W",
     "ETSY",
     "IESC",
-    "GME"
+    "GME",
+    "LUNR"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -311,6 +312,7 @@
     "W": "Consumer Discretionary",
     "ETSY": "Consumer Discretionary",
     "IESC": "Industrials",
-    "GME": "Consumer Discretionary"
+    "GME": "Consumer Discretionary",
+    "LUNR": "Industrials"
   }
 }
