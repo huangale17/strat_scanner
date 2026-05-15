@@ -220,7 +220,8 @@
     "ENPH",
     "SEDG",
     "TAN",
-    "FIG"
+    "FIG",
+    "TEAM"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -321,6 +322,7 @@
     "ENPH": "Technology",
     "SEDG": "Technology",
     "TAN": "Other",
-    "FIG": "Technology"
+    "FIG": "Technology",
+    "TEAM": "Technology"
   }
 }
