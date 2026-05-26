@@ -221,7 +221,8 @@
     "SEDG",
     "TAN",
     "FIG",
-    "TEAM"
+    "TEAM",
+    "AXP"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -323,6 +324,7 @@
     "SEDG": "Technology",
     "TAN": "Other",
     "FIG": "Technology",
-    "TEAM": "Technology"
+    "TEAM": "Technology",
+    "AXP": "Financials"
   }
 }
