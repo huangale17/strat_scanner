@@ -225,7 +225,8 @@
     "AXP",
     "DELL",
     "TOL",
-    "KBH"
+    "KBH",
+    "LEN"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -331,6 +332,7 @@
     "AXP": "Financials",
     "DELL": "Technology",
     "TOL": "Consumer Discretionary",
-    "KBH": "Consumer Discretionary"
+    "KBH": "Consumer Discretionary",
+    "LEN": "Consumer Discretionary"
   }
 }
