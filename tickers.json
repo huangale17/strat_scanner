@@ -223,7 +223,8 @@
     "FIG",
     "TEAM",
     "AXP",
-    "DELL"
+    "DELL",
+    "TOL"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -327,6 +328,7 @@
     "FIG": "Technology",
     "TEAM": "Technology",
     "AXP": "Financials",
-    "DELL": "Technology"
+    "DELL": "Technology",
+    "TOL": "Consumer Discretionary"
   }
 }
