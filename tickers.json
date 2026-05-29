@@ -228,7 +228,8 @@
     "KBH",
     "LEN",
     "KO",
-    "PEP"
+    "PEP",
+    "MDLZ"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -337,6 +338,7 @@
     "KBH": "Consumer Discretionary",
     "LEN": "Consumer Discretionary",
     "KO": "Consumer Staples",
-    "PEP": "Consumer Staples"
+    "PEP": "Consumer Staples",
+    "MDLZ": "Consumer Staples"
   }
 }
