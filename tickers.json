@@ -230,7 +230,8 @@
     "KO",
     "PEP",
     "MDLZ",
-    "FSLR"
+    "FSLR",
+    "RCAT"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -341,6 +342,7 @@
     "KO": "Consumer Staples",
     "PEP": "Consumer Staples",
     "MDLZ": "Consumer Staples",
-    "FSLR": "Technology"
+    "FSLR": "Technology",
+    "RCAT": "Industrials"
   }
 }
