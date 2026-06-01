@@ -229,7 +229,8 @@
     "LEN",
     "KO",
     "PEP",
-    "MDLZ"
+    "MDLZ",
+    "FSLR"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -339,6 +340,7 @@
     "LEN": "Consumer Discretionary",
     "KO": "Consumer Staples",
     "PEP": "Consumer Staples",
-    "MDLZ": "Consumer Staples"
+    "MDLZ": "Consumer Staples",
+    "FSLR": "Technology"
   }
 }
