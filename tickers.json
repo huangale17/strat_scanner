@@ -234,7 +234,8 @@
     "RCAT",
     "UMAC",
     "ARKG",
-    "BEAM"
+    "BEAM",
+    "CRSP"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -349,6 +350,7 @@
     "RCAT": "Industrials",
     "UMAC": "Technology",
     "ARKG": "Other",
-    "BEAM": "Healthcare"
+    "BEAM": "Healthcare",
+    "CRSP": "Healthcare"
   }
 }
