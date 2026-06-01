@@ -233,7 +233,8 @@
     "FSLR",
     "RCAT",
     "UMAC",
-    "ARKG"
+    "ARKG",
+    "BEAM"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -347,6 +348,7 @@
     "FSLR": "Technology",
     "RCAT": "Industrials",
     "UMAC": "Technology",
-    "ARKG": "Other"
+    "ARKG": "Other",
+    "BEAM": "Healthcare"
   }
 }
