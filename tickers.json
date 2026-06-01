@@ -232,7 +232,8 @@
     "MDLZ",
     "FSLR",
     "RCAT",
-    "UMAC"
+    "UMAC",
+    "ARKG"
   ],
   "sectors": {
     "CAT": "Industrials",
@@ -345,6 +346,7 @@
     "MDLZ": "Consumer Staples",
     "FSLR": "Technology",
     "RCAT": "Industrials",
-    "UMAC": "Technology"
+    "UMAC": "Technology",
+    "ARKG": "Other"
   }
 }
